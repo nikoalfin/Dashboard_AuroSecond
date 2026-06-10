@@ -1,631 +1,104 @@
 <!doctype html>
 <html lang="id">
-  <head>
+<head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Sorum Motor Realtime Panel</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-  </head>
-  <body class="bg-gray-50 text-gray-800 min-h-screen p-4 md:p-8">
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen p-4 md:p-8">
     <div id="globalLoader" class="fixed inset-0 bg-white/80 z-50 flex flex-col items-center justify-center gap-3">
-      <div class="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full"></div>
-      <p class="text-sm font-bold text-gray-600">Loading...</p>
+        <div class="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+        <p class="text-sm font-bold text-gray-600">Loading...</p>
     </div>
 
     <div id="pageBeranda" class="max-w-5xl mx-auto hidden">
-      <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-200 pb-4 mb-6 gap-4">
-        <div>
-          <h1 class="text-3xl font-extrabold text-blue-600">Garasi Stok Bersama</h1>
-          <p class="text-sm text-gray-500">Data tersinkronisasi langsung secara realtime antar perangkat</p>
-        </div>
-        <div class="flex gap-2 w-full sm:w-auto">
-          <button onclick="tarikDataDariSheet()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-sm px-3 py-2.5 rounded-lg shadow-sm cursor-pointer">🔄 Refresh</button>
-          <button onclick="bukaModalTambah()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2.5 rounded-lg shadow transition cursor-pointer">➕ Tambah Unit Baru</button>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-3 gap-4 mb-6">
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm text-center">
-          <span class="block text-xs font-bold text-gray-400 uppercase">Total Unit</span>
-          <span id="countTotal" class="text-2xl font-bold text-gray-800">0</span>
-        </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm text-center">
-          <span class="block text-xs font-bold text-blue-500 uppercase">Ready</span>
-          <span id="countReady" class="text-2xl font-bold text-blue-600">0</span>
-        </div>
-        <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm text-center">
-          <span class="block text-xs font-bold text-emerald-500 uppercase">Terjual</span>
-          <span id="countTerjual" class="text-2xl font-bold text-emerald-600">0</span>
-        </div>
-      </div>
-
-      <div id="gridMotor" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8"></div>
-
-      <div class="p-5 bg-white rounded-xl border border-gray-200 shadow-sm">
-        <h3 class="text-sm font-bold uppercase tracking-wider text-gray-600 mb-3 border-b border-gray-100 pb-2">⚙️ Konfigurasi Endpoint Realtime</h3>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div class="flex flex-col gap-1">
-            <label class="text-[11px] font-semibold text-gray-500">URL Web App Apps Script (Wajib Diisi):</label>
-            <input
-              type="text"
-              id="inputActionUrl"
-              placeholder="https://script.google.com/macros/s/XXXXX/exec"
-              class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-blue-500"
-              oninput="updateSettings()"
-            />
-          </div>
-          <div class="flex flex-col gap-1">
-            <label class="text-[11px] font-semibold text-gray-500">URL Link Google Spreadsheet (View):</label>
-            <input
-              type="text"
-              id="inputSpreadsheetUrl"
-              placeholder="https://docs.google.com/spreadsheets/d/XXXXX/edit"
-              class="w-full bg-gray-50 border border-gray-300 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-blue-500"
-              oninput="updateSettings()"
-            />
-          </div>
-        </div>
-        <a id="btnBukaSpreadsheet" href="#" target="_blank" class="inline-flex items-center justify-center bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-xs py-2 px-4 rounded-lg shadow-sm transition"
-          >📊 Buka Mentahan Google Sheets</a
-        >
-      </div>
-    </div>
-
-    <div id="pageDetail" class="max-w-4xl mx-auto hidden">
-      <button onclick="kembaliKeBeranda()" class="mb-4 text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer">⬅️ Kembali & Update Dashboard</button>
-      <div class="bg-white rounded-xl shadow-xl p-6 border border-gray-200">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-4 mb-6 gap-4">
-          <div>
-            <h2 id="detailNamaMotorDisplay" class="text-2xl font-extrabold text-blue-600">Nama Motor</h2>
-            <p class="text-sm text-gray-500">Rincian modal awal dan operasional unit</p>
-          </div>
-          <div class="flex flex-wrap gap-3 w-full md:w-auto items-center">
-            <div class="flex flex-col">
-              <label class="text-[10px] text-gray-500 font-semibold uppercase mb-0.5">Status Unit</label>
-              <select id="detailStatusSelect" class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs font-bold focus:outline-none" onchange="hitungSemua()">
-                <option value="Ready">🚗 Ready</option>
-                <option value="Terjual">✅ Terjual</option>
-              </select>
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-200 pb-4 mb-6 gap-4">
+            <div>
+                <h1 class="text-3xl font-extrabold text-blue-600">Garasi Stok Bersama</h1>
+                <p class="text-sm text-gray-500">Data tersinkronisasi langsung secara realtime antar perangkat</p>
             </div>
-            <div class="flex flex-col">
-              <label class="text-[10px] text-gray-500 font-semibold uppercase mb-0.5">Tgl Beli</label>
-              <input type="date" id="tglBeli" class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none" />
+            <div class="flex gap-2 w-full sm:w-auto flex-wrap sm:flex-nowrap">
+                <a id="btnBukaSpreadsheet" href="#" target="_blank" class="bg-emerald-100 hover:bg-emerald-200 text-emerald-700 font-bold text-sm px-3 py-2.5 rounded-lg shadow-sm transition cursor-pointer flex items-center gap-2 whitespace-nowrap">📊 Google Sheets</a>
+                <button onclick="tarikDataDariSheet()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-sm px-3 py-2.5 rounded-lg shadow-sm cursor-pointer whitespace-nowrap flex items-center gap-2">🔄 Refresh</button>
+                <button onclick="bukaModalTambah()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-4 py-2.5 rounded-lg shadow transition cursor-pointer whitespace-nowrap flex items-center gap-2">➕ Tambah Unit</button>
             </div>
-            <div class="flex flex-col">
-              <label class="text-[10px] text-gray-500 font-semibold uppercase mb-0.5">Tgl Laku</label>
-              <input type="date" id="tglLaku" class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none" />
-            </div>
-          </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Modal Awal Niko</label>
-            <div class="relative">
-              <span class="absolute left-3 top-2 text-gray-500 text-sm">Rp</span>
-              <input type="text" id="modalNiko" class="w-full bg-white border border-gray-300 rounded-md pl-10 pr-3 py-1.5 text-right font-semibold text-gray-800 input-rupiah" oninput="handleInputRupiah(this)" />
+        <div class="grid grid-cols-3 gap-4 mb-6">
+            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm text-center">
+                <span class="block text-xs font-bold text-gray-400 uppercase">Total Unit</span>
+                <span id="countTotal" class="text-2xl font-bold text-gray-800">0</span>
             </div>
-          </div>
-          <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Modal Awal Fikri</label>
-            <div class="relative">
-              <span class="absolute left-3 top-2 text-gray-500 text-sm">Rp</span>
-              <input type="text" id="modalFikri" class="w-full bg-white border border-gray-300 rounded-md pl-10 pr-3 py-1.5 text-right font-semibold text-gray-800 input-rupiah" oninput="handleInputRupiah(this)" />
+            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm text-center">
+                <span class="block text-xs font-bold text-blue-500 uppercase">Ready</span>
+                <span id="countReady" class="text-2xl font-bold text-blue-600">0</span>
             </div>
-          </div>
-          <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-            <label class="block text-xs font-bold text-emerald-700 uppercase mb-2">Harga Penjualan</label>
-            <div class="relative">
-              <span class="absolute left-3 top-2 text-emerald-600 text-sm">Rp</span>
-              <input type="text" id="hargaPenjualan" class="w-full bg-white border border-emerald-300 rounded-md pl-10 pr-3 py-1.5 text-right font-bold text-emerald-700 input-rupiah" oninput="handleInputRupiah(this)" />
+            <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm text-center">
+                <span class="block text-xs font-bold text-emerald-500 uppercase">Terjual</span>
+                <span id="countTerjual" class="text-2xl font-bold text-emerald-600">0</span>
             </div>
-          </div>
         </div>
 
-        <div class="mb-6">
-          <div class="flex justify-between items-center mb-3">
-            <h2 class="text-base font-bold text-gray-700">Daftar Uang Keluar</h2>
-            <button onclick="tambahBarisPengeluaran('', '0')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-2 rounded-lg cursor-pointer">+ Tambah Pengeluaran</button>
-          </div>
-          <div class="overflow-x-auto border border-gray-200 rounded-lg">
-            <table class="w-full text-left border-collapse">
-              <thead>
-                <tr class="bg-gray-100 text-gray-600 text-xs uppercase font-bold border-b border-gray-200">
-                  <th class="p-3 w-12 text-center">No</th>
-                  <th class="p-3">Keterangan</th>
-                  <th class="p-3 w-48 text-right">Jumlah (Rp)</th>
-                  <th class="p-3 w-16 text-center">Aksi</th>
-                </tr>
-              </thead>
-              <tbody id="bodyPengeluaran" class="divide-y divide-gray-100 bg-white"></tbody>
-            </table>
-          </div>
+        <div id="gridMotor" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            
         </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200">
-          <div class="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <h3 class="text-sm font-bold uppercase tracking-wider text-gray-600 border-b border-gray-200 pb-1.5">Ringkasan Kas</h3>
-            <div class="flex justify-between text-sm"><span>Total Modal Gabungan:</span><span id="txtTotalModal" class="font-semibold text-gray-800">Rp 0</span></div>
-            <div class="flex justify-between text-sm"><span>Total Pengeluaran:</span><span id="txtTotalPengeluaran" class="font-semibold text-red-600">Rp 0</span></div>
-            <div class="flex justify-between text-sm"><span>Sisa Saldo Kas:</span><span id="txtSisaSaldo" class="font-semibold text-blue-600">Rp 0</span></div>
-            <div class="flex justify-between text-base font-bold pt-2 border-t border-dashed border-gray-300"><span class="text-emerald-600">Total Untung Bersih:</span><span id="txtTotalUntung" class="text-emerald-600">Rp 0</span></div>
-          </div>
-          <div class="space-y-3 bg-blue-50/50 p-4 rounded-lg border border-blue-100">
-            <h3 class="text-sm font-bold uppercase tracking-wider text-blue-700 border-b border-blue-100 pb-1.5">Bagi Hasil Perorang (50/50)</h3>
-            <div class="flex justify-between text-sm"><span>Untung Bersih Perorang:</span><span id="txtUntungPerorang" class="font-bold text-blue-700">Rp 0</span></div>
-            <div class="flex justify-between text-sm pt-2 border-t border-blue-100"><span>Modal Akhir Niko:</span><span id="txtAkhirNiko" class="font-bold text-gray-800">Rp 0</span></div>
-            <div class="flex justify-between text-sm"><span>Modal Akhir Fikri:</span><span id="txtAkhirFikri" class="font-bold text-gray-800">Rp 0</span></div>
-          </div>
-        </div>
-
-        <div class="mt-6">
-          <button onclick="kirimDataKeSheet()" id="btnSimpan" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg shadow transition flex justify-center items-center gap-2 cursor-pointer">
-            <span id="btnText">🚀 Sinkronisasikan Data ke Google Sheets</span>
-            <span id="btnLoader" class="hidden animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
-          </button>
-        </div>
-      </div>
     </div>
 
     <div id="modalTambah" class="fixed inset-0 bg-black/50 z-50 flex items-center justify-center hidden p-4">
-      <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
-        <h3 class="text-lg font-bold text-gray-800 mb-4">➕ Daftarkan Unit Baru</h3>
-        <div class="space-y-4">
-          <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Motor</label>
-            <input type="text" id="modalInputNama" placeholder="Contoh: Scoopy 2020" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 text-sm focus:outline-none font-medium" />
-          </div>
-          <div>
-            <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Status Awal</label>
-            <select id="modalInputStatus" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 text-sm focus:outline-none">
-              <option value="Ready">🚗 Ready</option>
-              <option value="Terjual">✅ Terjual</option>
-            </select>
-          </div>
+        <div class="bg-white rounded-xl max-w-md w-full p-6 shadow-2xl">
+            <h3 class="text-lg font-bold text-gray-800 mb-4">➕ Daftarkan Unit Baru</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Nama Motor</label>
+                    <input type="text" id="modalInputNama" placeholder="Contoh: Scoopy 2020" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 text-sm focus:outline-none font-medium" />
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-1">Status Awal</label>
+                    <select id="modalInputStatus" class="w-full bg-gray-50 border border-gray-300 rounded-lg p-2 text-sm focus:outline-none">
+                        <option value="Ready">🚗 Ready</option>
+                        <option value="Terjual">✅ Terjual</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end gap-2">
+                <button onclick="tutupModalTambah()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs px-4 py-2 rounded-lg cursor-pointer">Batal</button>
+                <button onclick="prosesTambahMotor()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-lg cursor-pointer">Simpan Unit</button>
+            </div>
         </div>
-        <div class="mt-6 flex justify-end gap-2">
-          <button onclick="tutupModalTambah()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold text-xs px-4 py-2 rounded-lg cursor-pointer">Batal</button>
-          <button onclick="prosesTambahMotor()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-4 py-2 rounded-lg cursor-pointer">Simpan Unit</button>
-        </div>
-      </div>
     </div>
 
     <!-- toast synchronization -->
-    <div
-      id="customToast"
-      class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 ease-out flex items-center gap-3 bg-slate-900 border border-slate-850 text-white px-5 py-3.5 rounded-xl shadow-2xl max-w-sm"
-    >
-      <div class="flex items-center justify-center bg-emerald-500 text-white rounded-full p-1 h-6 w-6 shrink-0 animate-bounce">
-        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
-          <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-        </svg>
-      </div>
-      <div>
-        <p class="text-xs font-extrabold tracking-wider uppercase text-emerald-400">Auto Second Sync</p>
-        <p id="toastMessage" class="text-sm font-medium text-slate-350">Data berhasil dikirim ke cloud Sheets!</p>
-      </div>
+    <div id="customToast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 ease-out flex items-center gap-3 bg-slate-900 border border-slate-850 text-white px-5 py-3.5 rounded-xl shadow-2xl max-w-sm">
+        <div class="flex items-center justify-center bg-emerald-500 text-white rounded-full p-1 h-6 w-6 shrink-0 animate-bounce">
+            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+            </svg>
+        </div>
+        <div>
+            <p class="text-xs font-extrabold tracking-wider uppercase text-emerald-400">Auto Second Sync</p>
+            <p id="toastMessage" class="text-sm font-medium text-slate-350">Data berhasil dikirim ke cloud Sheets!</p>
+        </div>
     </div>
 
     <!-- MODAL KONFIRMASI HAPUS CUSTOM AUTO SECOND -->
     <div id="customConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-all duration-200 ease-out">
-      <!-- Backdrop Gelap Belakang -->
-      <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"></div>
-
-      <!-- Kotak Modal -->
-      <div class="relative bg-slate-900 border border-slate-800 text-white w-full max-w-sm p-6 rounded-2xl shadow-2xl transform scale-95 transition-all duration-200">
-        <!-- Ikon Peringatan -->
-        <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10 text-amber-500 mb-4 animate-pulse">
-          <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-          </svg>
+        <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"></div>
+        <div class="relative bg-slate-900 border border-slate-800 text-white w-full max-w-sm p-6 rounded-2xl shadow-2xl transform scale-95 transition-all duration-200">
+            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10 text-amber-500 mb-4 animate-pulse">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h3 class="text-center text-lg font-bold text-slate-100">Hapus Pengeluaran?</h3>
+            <p id="confirmModalMessage" class="text-center text-sm text-slate-400 mt-2 px-2">Apakah kamu yakin ingin menghapus pengeluaran ini? Tindakan ini tidak bisa dibatalkan.</p>
+            <div class="flex gap-3 mt-6">
+                <button id="btnCancelConfirm" class="flex-1 bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold py-2.5 px-4 rounded-xl text-sm transition-all active:scale-98">Batal</button>
+                <button id="btnActionConfirm" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition-all shadow-lg shadow-rose-600/20 active:scale-98">Ya, Hapus</button>
+            </div>
         </div>
-
-        <!-- Teks -->
-        <h3 class="text-center text-lg font-bold text-slate-100">Hapus Pengeluaran?</h3>
-        <p id="confirmModalMessage" class="text-center text-sm text-slate-400 mt-2 px-2">Apakah kamu yakin ingin menghapus pengeluaran ini? Tindakan ini tidak bisa dibatalkan.</p>
-
-        <!-- Tombol Aksi -->
-        <div class="flex gap-3 mt-6">
-          <button id="btnCancelConfirm" class="flex-1 bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold py-2.5 px-4 rounded-xl text-sm transition-all active:scale-98">Batal</button>
-          <button id="btnActionConfirm" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition-all shadow-lg shadow-rose-600/20 active:scale-98">Ya, Hapus</button>
-        </div>
-      </div>
     </div>
 
-    <script>
-      // toastt sync otomatis
-      function tampilkanToast(pesan) {
-        const toast = document.getElementById('customToast');
-        const toastMsg = document.getElementById('toastMessage');
-
-        // Set teks pesan sesuai kondisi
-        toastMsg.innerText = pesan;
-
-        // Munculkan Toast (geser ke atas & ubah opacity jadi 1)
-        toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
-        toast.classList.add('translate-y-0', 'opacity-100');
-
-        // Otomatis sembunyikan kembali setelah 3.5 detik
-        setTimeout(() => {
-          toast.classList.remove('translate-y-0', 'opacity-100');
-          toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
-        }, 3500);
-      }
-
-      //   toast konfirmasi custom
-      function tampilkanKonfirmasi(pesan) {
-        return new Promise((resolve) => {
-          const modal = document.getElementById('customConfirmModal');
-          const modalBox = modal.querySelector('.relative');
-          const msgElement = document.getElementById('confirmModalMessage');
-          const btnCancel = document.getElementById('btnCancelConfirm');
-          const btnAction = document.getElementById('btnActionConfirm');
-
-          if (pesan) msgElement.innerText = pesan;
-
-          // Munculkan Modal (Fade-in & Zoom-in sedikit)
-          modal.classList.remove('opacity-0', 'pointer-events-none');
-          modalBox.classList.remove('scale-95');
-          modalBox.classList.add('scale-100');
-
-          // Fungsi untuk menutup modal
-          function tutupModal(hasil) {
-            modal.classList.add('opacity-0', 'pointer-events-none');
-            modalBox.classList.remove('scale-100');
-            modalBox.classList.add('scale-95');
-
-            // Hapus event listener agar tidak menumpuk saat dipanggil lagi
-            btnCancel.removeEventListener('click', onCancel);
-            btnAction.removeEventListener('click', onConfirm);
-
-            resolve(hasil); // Kembalikan nilai true atau false
-          }
-
-          function onCancel() {
-            tutupModal(false);
-          }
-          function onConfirm() {
-            tutupModal(true);
-          }
-
-          // Pasang event listener ke tombol
-          btnCancel.addEventListener('click', onCancel);
-          btnAction.addEventListener('click', onConfirm);
-        });
-      }
-
-      // Tambahkan kata kunci 'async' di depan fungsi
-      async function hapusPengeluaran(index) {
-        // 🔥 GANTI DI SINI: panggil konfirmasi custom kita
-        const yakinHapus = await tampilkanKonfirmasi('Apakah kamu yakin ingin menghapus item pengeluaran ini?');
-
-        // Jika user klik "Ya, Hapus" (yakinHapus bernilai true)
-        if (yakinHapus) {
-          // Jalankan logika hapus data bawaan tokomu sebelumnya, contoh:
-          payloadData.pengeluaran.splice(index, 1);
-
-          // Render ulang tampilan & hitung kas
-          hitungSemua();
-          renderDetailPengeluaran();
-
-          // Bonus: Munculkan toast sukses hapus yang kita buat kemarin!
-          if (typeof tampilkanToast === 'function') {
-            tampilkanToast('🗑️ Pengeluaran berhasil dihapus.');
-          }
-        }
-      }
-
-      let listStokMotor = [];
-      let idMotorAktif = null;
-      const tbody = document.getElementById('bodyPengeluaran');
-
-      // AMBIL SETTING DARI LOCALSTORAGE
-      document.getElementById('inputActionUrl').value = localStorage.getItem('appsScriptUrl') || '';
-      const savedSheetUrl = localStorage.getItem('spreadsheetViewUrl') || '#';
-      document.getElementById('inputSpreadsheetUrl').value = savedSheetUrl === '#' ? '' : savedSheetUrl;
-      document.getElementById('btnBukaSpreadsheet').href = savedSheetUrl;
-
-      // AUTOMATIC REALTIME FETCH DATA ON STARTUP
-      tarikDataDariSheet();
-
-      function tarikDataDariSheet() {
-        const endpoint = localStorage.getItem('appsScriptUrl');
-        if (!endpoint) {
-          document.getElementById('globalLoader').classList.add('hidden');
-          document.getElementById('pageBeranda').classList.remove('hidden');
-          return;
-        }
-
-        document.getElementById('globalLoader').classList.remove('hidden');
-
-        // Kita tambahkan redirect mode agar browser lancar mengikuti link dari Google Apps Script
-        fetch(endpoint, { method: 'GET', redirect: 'follow' })
-          .then((res) => {
-            if (!res.ok) throw new Error('Network response was not ok');
-            return res.json();
-          })
-          .then((data) => {
-            // Validasi jika data yang kembali berbentuk array
-            if (Array.isArray(data)) {
-              listStokMotor = data;
-              renderBeranda();
-            } else {
-              console.error('Format data dari Sheets salah:', data);
-            }
-          })
-          .catch((err) => {
-            alert('⚠️ Gagal sinkronisasi otomatis. Cek kembali URL Apps Script kamu.');
-            console.error(err);
-          })
-          .finally(() => {
-            document.getElementById('globalLoader').classList.add('hidden');
-            document.getElementById('pageBeranda').classList.remove('hidden');
-          });
-      }
-
-      function renderBeranda() {
-        const grid = document.getElementById('gridMotor');
-        grid.innerHTML = '';
-        let ready = 0,
-          terjual = 0;
-
-        listStokMotor.forEach((motor) => {
-          if (motor.status === 'Ready') ready++;
-          else terjual++;
-
-          const card = document.createElement('div');
-          card.className = 'bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition duration-200 flex flex-col justify-between cursor-pointer transform hover:-translate-y-0.5';
-          card.setAttribute('onclick', `bukaDetailMotor(${motor.id})`);
-          card.innerHTML = `
-                    <div>
-                        <div class="flex justify-between items-start mb-3">
-                            <h3 class="text-base font-bold text-gray-800 capitalize">${motor.nama}</h3>
-                            <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase ${motor.status === 'Ready' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}">${motor.status}</span>
-                        </div>
-                        <p class="text-xs text-gray-400 mb-4">Tgl Beli: ${motor.tglBeli || '-'}</p>
-                    </div>
-                    <div class="border-t border-gray-100 pt-3 flex justify-between items-center text-xs text-gray-600 font-medium">
-                        <span>Total Ops:</span><span class="font-bold text-gray-800">Rp ${(motor.totalPengeluaran || 0).toLocaleString('id-ID')}</span>
-                    </div>
-                `;
-          grid.appendChild(card);
-        });
-
-        document.getElementById('countTotal').innerText = listStokMotor.length;
-        document.getElementById('countReady').innerText = ready;
-        document.getElementById('countTerjual').innerText = terjual;
-      }
-
-      function bukaDetailMotor(id) {
-        idMotorAktif = id;
-        const motor = listStokMotor.find((x) => x.id === id);
-
-        document.getElementById('detailNamaMotorDisplay').innerText = motor.nama;
-        document.getElementById('detailStatusSelect').value = motor.status;
-        document.getElementById('tglBeli').value = motor.tglBeli || '';
-        document.getElementById('tglLaku').value = motor.tglLaku || '';
-        document.getElementById('modalNiko').value = (motor.modalNiko || 0).toLocaleString('id-ID');
-        document.getElementById('modalFikri').value = (motor.modalFikri || 0).toLocaleString('id-ID');
-        document.getElementById('hargaPenjualan').value = (motor.penjualan || 0).toLocaleString('id-ID');
-
-        tbody.innerHTML = '';
-        if (motor.pengeluaran) {
-          motor.pengeluaran.forEach((x) => tambahBarisPengeluaran(x.ket, x.item, false));
-        }
-        hitungSemua();
-
-        document.getElementById('pageBeranda').classList.add('hidden');
-        document.getElementById('pageDetail').classList.remove('hidden');
-        window.scrollTo(0, 0);
-      }
-
-      function kembaliKeBeranda() {
-        document.getElementById('pageDetail').classList.add('hidden');
-        tarikDataDariSheet(); // Auto pull data terbaru agar sinkron
-      }
-
-      function prosesTambahMotor() {
-        const nama = document.getElementById('modalInputNama').value;
-        const status = document.getElementById('modalInputStatus').value;
-        if (!nama) {
-          alert('Nama motor wajib diisi!');
-          return;
-        }
-
-        const newId = listStokMotor.length > 0 ? Math.max(...listStokMotor.map((o) => Number(o.id) || 0)) + 1 : 1;
-        const newObj = {
-          id: newId,
-          nama: nama,
-          status: status,
-          tglBeli: new Date().toISOString().split('T')[0],
-          tglLaku: '',
-          modalNiko: 0,
-          modalFikri: 0,
-          penjualan: 0,
-          totalPengeluaran: 0,
-          pengeluaran: [],
-        };
-
-        listStokMotor.push(newObj);
-        document.getElementById('modalInputNama').value = '';
-        tutupModalTambah();
-
-        // Langsung lempar ke detail agar di-save ke cloud spreadsheet saat diklik simpan pembukuan
-        bukaDetailMotor(newId);
-      }
-
-      function updateSettings() {
-        localStorage.setItem('appsScriptUrl', document.getElementById('inputActionUrl').value);
-        localStorage.setItem('spreadsheetViewUrl', document.getElementById('inputSpreadsheetUrl').value);
-        document.getElementById('btnBukaSpreadsheet').href = document.getElementById('inputSpreadsheetUrl').value || '#';
-      }
-
-      // FORMATTER UTILITY
-      function formatNumberWithDots(val) {
-        return Number(val.replace(/\D/g, '') || 0).toLocaleString('id-ID');
-      }
-      function getCleanNumber(val) {
-        return Number(val.replace(/\./g, '')) || 0;
-      }
-      function formatRupiahDisplay(angka) {
-        return 'Rp ' + Number(angka).toLocaleString('id-ID');
-      }
-
-      function handleInputRupiah(input) {
-        if (input.value === '') return;
-        let selectionStart = input.selectionStart,
-          oldLength = input.value.length;
-        input.value = formatNumberWithDots(input.value);
-        input.selectionStart = selectionStart + (input.value.length - oldLength);
-        hitungSemua();
-      }
-
-      function tambahBarisPengeluaran(keterangan = '', jumlah = '0', hitungUlang = true) {
-        const index = tbody.rows.length + 1;
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td class="p-3 text-center text-sm text-gray-400 index-number font-medium">${index}</td>
-            <td class="p-2"><input type="text" value="${keterangan}" placeholder="Keterangan..." class="w-full bg-transparent border-b border-transparent focus:border-blue-500 py-1 px-2 focus:outline-none text-sm class-keterangan"></td>
-            <td class="p-2"><input type="text" value="${jumlah}" placeholder="0" class="w-full bg-transparent border-b border-transparent focus:border-blue-500 py-1 px-2 focus:outline-none text-sm text-right font-semibold class-jumlah" oninput="handleInputRupiah(this)"></td>
-            
-            <td class="p-2 text-center"><button class="btn-hapus-operasional text-red-500 hover:text-red-700 text-xs font-bold cursor-pointer">Hapus</button></td>
-        `;
-
-        const btnHapus = tr.querySelector('.btn-hapus-operasional');
-        btnHapus.addEventListener('click', async function () {
-          await hapusBaris(this);
-        });
-
-        tbody.appendChild(tr);
-        if (hitungUlang) {
-          urutkanNomorTabel();
-          hitungSemua();
-        }
-      }
-
-      // Tambahkan kata kunci 'async' di depan fungsi biar bisa pakai 'await'
-      async function hapusBaris(btn) {
-        // 1. Tahan dan tunggu jawaban dari modal custom kita
-        const yakinHapus = await tampilkanKonfirmasi('Apakah kamu yakin ingin menghapus pengeluaran ini?');
-
-        // 2. Jika user klik "Ya, Hapus" (yakinHapus bernilai true)
-        if (yakinHapus) {
-          // Ambil elemen baris (tr) yang mau dihapus
-          const row = btn.closest('tr');
-          // Hapus barisnya dari tampilan HTML
-          row.remove();
-          // Urutkan ulang nomor 1, 2, 3 di tabel & hitung ulang kas
-          urutkanNomorTabel();
-          hitungSemua();
-
-          // 3. Munculkan toast sukses khas Auto Second biar makin premium
-          if (typeof tampilkanToast === 'function') {
-            tampilkanToast('🗑️ Pengeluaran berhasil dihapus.');
-          }
-        }
-        // Jika klik "Batal", blok 'if' di atas dilewati, data AMAN tidak terhapus!
-      }
-
-      function urutkanNomorTabel() {
-        tbody.querySelectorAll('tr').forEach((tr, i) => {
-          tr.querySelector('.index-number').innerText = i + 1;
-        });
-      }
-
-      let payloadData = {};
-
-      function hitungSemua() {
-        const mNiko = getCleanNumber(document.getElementById('modalNiko').value);
-        const mFikri = getCleanNumber(document.getElementById('modalFikri').value);
-        const penjualan = getCleanNumber(document.getElementById('hargaPenjualan').value);
-
-        let totalPengeluaran = 0;
-        tbody.querySelectorAll('.class-jumlah').forEach((input) => {
-          totalPengeluaran += getCleanNumber(input.value);
-        });
-
-        const totalModal = mNiko + mFikri;
-        const sisaSaldo = totalModal - totalPengeluaran;
-        const totalUntung = penjualan - totalPengeluaran;
-        const untungPerorang = totalUntung / 2;
-        const akhirNiko = mNiko + untungPerorang;
-        const akhirFikri = mFikri + untungPerorang;
-
-        document.getElementById('txtTotalModal').innerText = formatRupiahDisplay(totalModal);
-        document.getElementById('txtTotalPengeluaran').innerText = formatRupiahDisplay(totalPengeluaran);
-        document.getElementById('txtSisaSaldo').innerText = formatRupiahDisplay(sisaSaldo);
-        document.getElementById('txtTotalUntung').innerText = formatRupiahDisplay(totalUntung);
-        document.getElementById('txtUntungPerorang').innerText = formatRupiahDisplay(untungPerorang);
-        document.getElementById('txtAkhirNiko').innerText = formatRupiahDisplay(akhirNiko);
-        document.getElementById('txtAkhirFikri').innerText = formatRupiahDisplay(akhirFikri);
-
-        let arrPengeluaran = [];
-        tbody.querySelectorAll('tr').forEach((tr) => {
-          arrPengeluaran.push({
-            ket: tr.querySelector('.class-keterangan').value,
-            item: tr.querySelector('.class-jumlah').value,
-          });
-        });
-
-        payloadData = {
-          id: idMotorAktif,
-          nama: document.getElementById('detailNamaMotorDisplay').innerText,
-          status: document.getElementById('detailStatusSelect').value,
-          tglBeli: document.getElementById('tglBeli').value,
-          tglLaku: document.getElementById('tglLaku').value,
-          modalNiko: mNiko,
-          modalFikri: mFikri,
-          penjualan: penjualan,
-          totalPengeluaran: totalPengeluaran,
-          pengeluaran: arrPengeluaran,
-        };
-      }
-
-      function kirimDataKeSheet() {
-        const endpointUrl = localStorage.getItem('appsScriptUrl');
-        if (!endpointUrl) {
-          alert('⚠️ Isi URL Apps Script di halaman beranda dahulu!');
-          return;
-        }
-
-        hitungSemua(); // pastikan data terbaru terbungkus sempurna
-
-        const btnSimpan = document.getElementById('btnSimpan');
-        const btnText = document.getElementById('btnText');
-        const btnLoader = document.getElementById('btnLoader');
-
-        btnSimpan.disabled = true;
-        btnSimpan.classList.add('opacity-60', 'cursor-not-allowed');
-        btnText.innerText = 'Mengirim data ke Cloud Sheets...';
-        btnLoader.classList.remove('hidden');
-
-        fetch(endpointUrl, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payloadData),
-        })
-          .then(() => {
-            tampilkanToast(`Sukses sinkron! Data unit ${payloadData.nama} berhasil diamankan ke cloud.`);
-          })
-          .catch((err) => {
-            alert('❌ Gagal sinkron cloud.');
-            console.error(err);
-          })
-          .finally(() => {
-            btnSimpan.disabled = false;
-            btnSimpan.classList.remove('opacity-60', 'cursor-not-allowed');
-            btnText.innerText = '🚀 Sinkronisasikan Data ke Google Sheets';
-            btnLoader.classList.add('hidden');
-          });
-      }
-
-      function bukaModalTambah() {
-        document.getElementById('modalTambah').classList.remove('hidden');
-      }
-      function tutupModalTambah() {
-        document.getElementById('modalTambah').classList.add('hidden');
-      }
-    </script>
-  </body>
+    <script src="app.js"></script>
+</body>
 </html>
