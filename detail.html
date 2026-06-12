@@ -1,11 +1,22 @@
 <!doctype html>
 <html lang="id">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Sorum Motor - Detail</title>
+    <title>Aurosecond Dashboard - Detail</title>
+    <link rel="icon" type="image/jpeg" href="image/auro.jpeg" />
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <!-- Flatpickr Library CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+
+    <!-- Komponen Kustom -->
+    <link rel="stylesheet" href="components/calendar.css" />
+    <script src="components/confirm-modal.js"></script>
 </head>
+
 <body class="bg-gray-50 text-gray-800 min-h-screen p-4 md:p-8">
     <div id="globalLoader" class="fixed inset-0 bg-white/80 z-50 flex flex-col items-center justify-center gap-3">
         <div class="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full"></div>
@@ -13,9 +24,12 @@
     </div>
 
     <div id="pageDetail" class="max-w-4xl mx-auto hidden">
-        <button onclick="kembaliKeBeranda()" class="mb-4 text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1 cursor-pointer">⬅️ Kembali & Update Dashboard</button>
+        <button onclick="kembaliKeBeranda()"
+            class="mb-4 text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-2 cursor-pointer">
+            <i class="fa-solid fa-arrow-left"></i> Kembali & Update Dashboard</button>
         <div class="bg-white rounded-xl shadow-xl p-6 border border-gray-200">
-            <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-4 mb-6 gap-4">
+            <div
+                class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-4 mb-6 gap-4">
                 <div>
                     <h2 id="detailNamaMotorDisplay" class="text-2xl font-extrabold text-blue-600">Nama Motor</h2>
                     <p class="text-sm text-gray-500">Rincian modal awal dan operasional unit</p>
@@ -23,18 +37,22 @@
                 <div class="flex flex-wrap gap-3 w-full md:w-auto items-center">
                     <div class="flex flex-col">
                         <label class="text-[10px] text-gray-500 font-semibold uppercase mb-0.5">Status Unit</label>
-                        <select id="detailStatusSelect" class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs font-bold focus:outline-none" onchange="hitungSemua()">
+                        <select id="detailStatusSelect"
+                            class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs font-bold focus:outline-none"
+                            onchange="hitungSemua()">
                             <option value="Ready">🚗 Ready</option>
                             <option value="Terjual">✅ Terjual</option>
                         </select>
                     </div>
                     <div class="flex flex-col">
                         <label class="text-[10px] text-gray-500 font-semibold uppercase mb-0.5">Tgl Beli</label>
-                        <input type="date" id="tglBeli" class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none" onchange="hitungSemua()" />
+                        <input type="text" id="tglBeli" placeholder="Pilih tanggal..."
+                            class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none cursor-pointer w-full md:w-32" />
                     </div>
                     <div class="flex flex-col">
                         <label class="text-[10px] text-gray-500 font-semibold uppercase mb-0.5">Tgl Laku</label>
-                        <input type="date" id="tglLaku" class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none" onchange="hitungSemua()" />
+                        <input type="text" id="tglLaku" placeholder="Pilih tanggal..."
+                            class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none cursor-pointer w-full md:w-32" />
                     </div>
                 </div>
             </div>
@@ -44,21 +62,27 @@
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Modal Awal Niko</label>
                     <div class="relative">
                         <span class="absolute left-3 top-2 text-gray-500 text-sm">Rp</span>
-                        <input type="text" id="modalNiko" class="w-full bg-white border border-gray-300 rounded-md pl-10 pr-3 py-1.5 text-right font-semibold text-gray-800 input-rupiah" oninput="handleInputRupiah(this)" />
+                        <input type="text" id="modalNiko"
+                            class="w-full bg-white border border-gray-300 rounded-md pl-10 pr-3 py-1.5 text-right font-semibold text-gray-800 input-rupiah"
+                            oninput="handleInputRupiah(this)" />
                     </div>
                 </div>
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Modal Awal Fikri</label>
                     <div class="relative">
                         <span class="absolute left-3 top-2 text-gray-500 text-sm">Rp</span>
-                        <input type="text" id="modalFikri" class="w-full bg-white border border-gray-300 rounded-md pl-10 pr-3 py-1.5 text-right font-semibold text-gray-800 input-rupiah" oninput="handleInputRupiah(this)" />
+                        <input type="text" id="modalFikri"
+                            class="w-full bg-white border border-gray-300 rounded-md pl-10 pr-3 py-1.5 text-right font-semibold text-gray-800 input-rupiah"
+                            oninput="handleInputRupiah(this)" />
                     </div>
                 </div>
                 <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
                     <label class="block text-xs font-bold text-emerald-700 uppercase mb-2">Harga Penjualan</label>
                     <div class="relative">
                         <span class="absolute left-3 top-2 text-emerald-600 text-sm">Rp</span>
-                        <input type="text" id="hargaPenjualan" class="w-full bg-white border border-emerald-300 rounded-md pl-10 pr-3 py-1.5 text-right font-bold text-emerald-700 input-rupiah" oninput="handleInputRupiah(this)" />
+                        <input type="text" id="hargaPenjualan"
+                            class="w-full bg-white border border-emerald-300 rounded-md pl-10 pr-3 py-1.5 text-right font-bold text-emerald-700 input-rupiah"
+                            oninput="handleInputRupiah(this)" />
                     </div>
                 </div>
             </div>
@@ -66,7 +90,9 @@
             <div class="mb-6">
                 <div class="flex justify-between items-center mb-3">
                     <h2 class="text-base font-bold text-gray-700">Daftar Uang Keluar</h2>
-                    <button onclick="tambahBarisPengeluaran('', '0')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-2 rounded-lg cursor-pointer">+ Tambah Pengeluaran</button>
+                    <button onclick="tambahBarisPengeluaran('', '0')"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-2 rounded-lg cursor-pointer">+
+                        Tambah Pengeluaran</button>
                 </div>
                 <div class="overflow-x-auto border border-gray-200 rounded-lg">
                     <table class="w-full min-w-[420px] text-left border-collapse">
@@ -85,60 +111,68 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200">
                 <div class="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-gray-600 border-b border-gray-200 pb-1.5">Ringkasan Kas</h3>
-                    <div class="flex justify-between text-sm"><span>Total Modal Gabungan:</span><span id="txtTotalModal" class="font-semibold text-gray-800">Rp 0</span></div>
-                    <div class="flex justify-between text-sm"><span>Total Pengeluaran:</span><span id="txtTotalPengeluaran" class="font-semibold text-red-600">Rp 0</span></div>
-                    <div class="flex justify-between text-sm"><span>Sisa Saldo Kas:</span><span id="txtSisaSaldo" class="font-semibold text-blue-600">Rp 0</span></div>
-                    <div class="flex justify-between text-base font-bold pt-2 border-t border-dashed border-gray-300"><span class="text-emerald-600">Total Untung Bersih:</span><span id="txtTotalUntung" class="text-emerald-600">Rp 0</span></div>
+                    <h3
+                        class="text-sm font-bold uppercase tracking-wider text-gray-600 border-b border-gray-200 pb-1.5">
+                        Ringkasan Kas</h3>
+                    <div class="flex justify-between text-sm"><span>Total Modal Gabungan:</span><span id="txtTotalModal"
+                            class="font-semibold text-gray-800">Rp 0</span></div>
+                    <div class="flex justify-between text-sm"><span>Total Pengeluaran:</span><span
+                            id="txtTotalPengeluaran" class="font-semibold text-red-600">Rp 0</span></div>
+                    <div class="flex justify-between text-sm"><span>Sisa Saldo Kas:</span><span id="txtSisaSaldo"
+                            class="font-semibold text-blue-600">Rp 0</span></div>
+                    <div class="flex justify-between text-base font-bold pt-2 border-t border-dashed border-gray-300">
+                        <span class="text-emerald-600">Total Untung Bersih:</span><span id="txtTotalUntung"
+                            class="text-emerald-600">Rp 0</span>
+                    </div>
                 </div>
                 <div class="space-y-3 bg-blue-50/50 p-4 rounded-lg border border-blue-100">
-                    <h3 class="text-sm font-bold uppercase tracking-wider text-blue-700 border-b border-blue-100 pb-1.5">Bagi Hasil Perorang (50/50)</h3>
-                    <div class="flex justify-between text-sm"><span>Untung Bersih Perorang:</span><span id="txtUntungPerorang" class="font-bold text-blue-700">Rp 0</span></div>
-                    <div class="flex justify-between text-sm pt-2 border-t border-blue-100"><span>Modal Akhir Niko:</span><span id="txtAkhirNiko" class="font-bold text-gray-800">Rp 0</span></div>
-                    <div class="flex justify-between text-sm"><span>Modal Akhir Fikri:</span><span id="txtAkhirFikri" class="font-bold text-gray-800">Rp 0</span></div>
+                    <h3
+                        class="text-sm font-bold uppercase tracking-wider text-blue-700 border-b border-blue-100 pb-1.5">
+                        Bagi Hasil Perorang (50/50)</h3>
+                    <div class="flex justify-between text-sm"><span>Untung Bersih Perorang:</span><span
+                            id="txtUntungPerorang" class="font-bold text-blue-700">Rp 0</span></div>
+                    <div class="flex justify-between text-sm pt-2 border-t border-blue-100"><span>Modal Akhir
+                            Niko:</span><span id="txtAkhirNiko" class="font-bold text-gray-800">Rp 0</span></div>
+                    <div class="flex justify-between text-sm"><span>Modal Akhir Fikri:</span><span id="txtAkhirFikri"
+                            class="font-bold text-gray-800">Rp 0</span></div>
                 </div>
             </div>
 
-            <div class="mt-6">
-                <button onclick="kirimDataKeSheet()" id="btnSimpan" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg shadow transition flex justify-center items-center gap-2 cursor-pointer">
-                    <span id="btnText">🚀 Sinkronisasikan Data ke Google Sheets</span>
-                    <span id="btnLoader" class="hidden animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+            <div class="mt-6 flex flex-col sm:flex-row gap-3">
+                <button onclick="kirimDataKeSheet()" id="btnSimpan"
+                    class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg shadow transition flex justify-center items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
+                    <span id="btnText">Sinkronisasikan Data</span>
+                    <span id="btnLoader"
+                        class="hidden animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                </button>
+                <button onclick="hapusMotorDariSheet()"
+                    class="bg-red-500 hover:bg-rose-200 text-white font-bold py-3 px-6 rounded-lg transition flex justify-center items-center gap-2 cursor-pointer border border-rose-200">
+                    <i class="fa-solid fa-trash-can"></i>
+                    <span>Hapus Unit</span>
                 </button>
             </div>
         </div>
     </div>
 
     <!-- toast synchronization -->
-    <div id="customToast" class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 ease-out flex items-center gap-3 bg-slate-900 border border-slate-850 text-white px-5 py-3.5 rounded-xl shadow-2xl max-w-sm">
-        <div class="flex items-center justify-center bg-emerald-500 text-white rounded-full p-1 h-6 w-6 shrink-0 animate-bounce">
+    <div id="customToast"
+        class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 ease-out flex items-center gap-3 bg-slate-900 border border-slate-850 text-white px-5 py-3.5 rounded-xl shadow-2xl max-w-sm">
+        <div
+            class="flex items-center justify-center bg-emerald-500 text-white rounded-full p-1 h-6 w-6 shrink-0 animate-bounce">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
         </div>
         <div>
-            <p class="text-xs font-extrabold tracking-wider uppercase text-emerald-400">Auto Second Sync</p>
+            <p class="text-xs font-extrabold tracking-wider uppercase text-emerald-400">Loading...</p>
             <p id="toastMessage" class="text-sm font-medium text-slate-350">Data berhasil dikirim ke cloud Sheets!</p>
         </div>
     </div>
 
-    <!-- MODAL KONFIRMASI HAPUS CUSTOM AUTO SECOND -->
-    <div id="customConfirmModal" class="fixed inset-0 z-50 flex items-center justify-center opacity-0 pointer-events-none transition-all duration-200 ease-out">
-        <div class="absolute inset-0 bg-slate-950/60 backdrop-blur-sm"></div>
-        <div class="relative bg-slate-900 border border-slate-800 text-white w-full max-w-sm p-6 rounded-2xl shadow-2xl transform scale-95 transition-all duration-200">
-            <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10 text-amber-500 mb-4 animate-pulse">
-                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                </svg>
-            </div>
-            <h3 class="text-center text-lg font-bold text-slate-100">Hapus Pengeluaran?</h3>
-            <p id="confirmModalMessage" class="text-center text-sm text-slate-400 mt-2 px-2">Apakah kamu yakin ingin menghapus pengeluaran ini? Tindakan ini tidak bisa dibatalkan.</p>
-            <div class="flex gap-3 mt-6">
-                <button id="btnCancelConfirm" class="flex-1 bg-slate-800 hover:bg-slate-750 text-slate-300 font-semibold py-2.5 px-4 rounded-xl text-sm transition-all active:scale-98">Batal</button>
-                <button id="btnActionConfirm" class="flex-1 bg-rose-600 hover:bg-rose-500 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition-all shadow-lg shadow-rose-600/20 active:scale-98">Ya, Hapus</button>
-            </div>
-        </div>
-    </div>
+
 
     <script src="app.js"></script>
 </body>
+
 </html>

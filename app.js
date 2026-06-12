@@ -17,6 +17,39 @@ window.addEventListener('DOMContentLoaded', () => {
   konfigurasiCustomSelect('filterTahun');
   konfigurasiCustomSelect('filterStatus');
 
+  // Inisialisasi Flatpickr pada input tanggal beli modal tambah
+  if (document.getElementById('modalInputTglBeli')) {
+    flatpickr("#modalInputTglBeli", {
+      dateFormat: "Y-m-d",
+      altInput: true,
+      altFormat: "d/m/Y",
+      defaultDate: new Date(),
+    });
+  }
+
+  // Inisialisasi Flatpickr pada input detail
+  if (document.getElementById('tglBeli')) {
+    flatpickr("#tglBeli", {
+      dateFormat: "Y-m-d",
+      altInput: true,
+      altFormat: "d/m/Y",
+      onChange: () => {
+        hitungSemua();
+      }
+    });
+  }
+
+  if (document.getElementById('tglLaku')) {
+    flatpickr("#tglLaku", {
+      dateFormat: "Y-m-d",
+      altInput: true,
+      altFormat: "d/m/Y",
+      onChange: () => {
+        hitungSemua();
+      }
+    });
+  }
+
   tarikDataDariSheet();
 });
 
@@ -97,11 +130,10 @@ function konfigurasiCustomSelect(selectId) {
     const isSelected = option.value === nativeSelect.value;
     const item = document.createElement('button');
     item.type = 'button';
-    item.className = `w-full text-left px-4 py-2.5 text-sm transition-all cursor-pointer flex justify-between items-center ${
-      isSelected
+    item.className = `w-full text-left px-4 py-2.5 text-sm transition-all cursor-pointer flex justify-between items-center ${isSelected
         ? 'bg-blue-50 text-blue-600 font-bold'
         : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900 font-medium'
-    }`;
+      }`;
     item.innerHTML = `
       <span>${option.text}</span>
       ${isSelected ? `<svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>` : ''}
@@ -110,7 +142,7 @@ function konfigurasiCustomSelect(selectId) {
     item.addEventListener('click', (e) => {
       e.stopPropagation();
       nativeSelect.value = option.value;
-      
+
       // Update label di tombol trigger
       customContainer.querySelector('.custom-select-label').innerText = option.text;
 
@@ -131,7 +163,7 @@ function konfigurasiCustomSelect(selectId) {
   // Toggle buka/tutup dropdown panel
   button.addEventListener('click', (e) => {
     e.stopPropagation();
-    
+
     // Tutup panel lain yang sedang terbuka
     document.querySelectorAll('.custom-select-panel').forEach((otherPanel) => {
       if (otherPanel !== panel) {
@@ -173,8 +205,11 @@ function tarikDataDariSheet() {
     })
     .then((data) => {
       if (Array.isArray(data)) {
+        // Filter out empty rows (defensive check for deleted/cleared rows in spreadsheet)
+        listStokMotor = data.filter((motor) => motor && motor.id && motor.nama);
+
         // Sort berdasarkan tanggal beli - terbaru ditaruh paling atas
-        listStokMotor = data.sort((a, b) => {
+        listStokMotor.sort((a, b) => {
           const dateA = new Date(a.tglBeli || '1970-01-01');
           const dateB = new Date(b.tglBeli || '1970-01-01');
           return dateB - dateA;
@@ -307,8 +342,24 @@ function bukaDetailMotor(id) {
   document.getElementById('detailNamaMotorDisplay').innerText = motor.nama;
   document.getElementById('detailStatusSelect').value = motor.status;
   konfigurasiCustomSelect('detailStatusSelect');
-  document.getElementById('tglBeli').value = motor.tglBeli || '';
-  document.getElementById('tglLaku').value = motor.tglLaku || '';
+  const tglBeliInput = document.getElementById('tglBeli');
+  const tglLakuInput = document.getElementById('tglLaku');
+
+  if (tglBeliInput) {
+    if (tglBeliInput._flatpickr) {
+      tglBeliInput._flatpickr.setDate(motor.tglBeli || '', false);
+    } else {
+      tglBeliInput.value = motor.tglBeli || '';
+    }
+  }
+
+  if (tglLakuInput) {
+    if (tglLakuInput._flatpickr) {
+      tglLakuInput._flatpickr.setDate(motor.tglLaku || '', false);
+    } else {
+      tglLakuInput.value = motor.tglLaku || '';
+    }
+  }
   document.getElementById('modalNiko').value = (motor.modalNiko || 0).toLocaleString('id-ID');
   document.getElementById('modalFikri').value = (motor.modalFikri || 0).toLocaleString('id-ID');
   document.getElementById('hargaPenjualan').value = (motor.penjualan || 0).toLocaleString('id-ID');
@@ -319,16 +370,16 @@ function bukaDetailMotor(id) {
     motor.pengeluaran.forEach((x) => tambahBarisPengeluaran(x.ket, x.item, false));
   }
   hitungSemua();
-  
+
   setTimeout(() => {
     window.apakahAdaPerubahan = false;
   }, 100);
 
   // Push state to intercept browser/phone back button
   history.pushState({ page: 'detail' }, null, window.location.href);
-  
+
   if (!window.hasPopstateListener) {
-    window.addEventListener('popstate', function(event) {
+    window.addEventListener('popstate', function (event) {
       kembaliKeBeranda();
     });
     window.hasPopstateListener = true;
@@ -371,7 +422,7 @@ function syncDanKembali() {
 
 function prosesTambahMotor() {
   const nama = document.getElementById('modalInputNama').value;
-  const status = document.getElementById('modalInputStatus').value;
+  const tglBeli = document.getElementById('modalInputTglBeli').value;
   if (!nama) {
     alert('Nama motor wajib diisi!');
     return;
@@ -381,8 +432,8 @@ function prosesTambahMotor() {
   const newObj = {
     id: newId,
     nama: nama,
-    status: status,
-    tglBeli: new Date().toISOString().split('T')[0],
+    status: 'Ready',
+    tglBeli: tglBeli || new Date().toISOString().split('T')[0],
     tglLaku: '',
     modalNiko: 0,
     modalFikri: 0,
@@ -417,7 +468,19 @@ function prosesTambahMotor() {
 
 function bukaModalTambah() {
   const modal = document.getElementById('modalTambah');
-  if (modal) modal.classList.remove('hidden');
+  if (modal) {
+    modal.classList.remove('hidden');
+    // Prefill input tanggal beli dengan tanggal hari ini
+    const tglBeliInput = document.getElementById('modalInputTglBeli');
+    if (tglBeliInput) {
+      const todayStr = new Date().toISOString().split('T')[0];
+      if (tglBeliInput._flatpickr) {
+        tglBeliInput._flatpickr.setDate(todayStr, false);
+      } else {
+        tglBeliInput.value = todayStr;
+      }
+    }
+  }
 }
 function tutupModalTambah() {
   const modal = document.getElementById('modalTambah');
@@ -470,7 +533,7 @@ function tambahBarisPengeluaran(keterangan = '', jumlah = '0', hitungUlang = tru
 }
 
 async function hapusBaris(btn) {
-  const yakinHapus = await tampilkanKonfirmasi('Apakah kamu yakin ingin menghapus pengeluaran ini?');
+  const yakinHapus = await tampilkanKonfirmasi('Apakah kamu yakin ingin menghapus pengeluaran ini?', 'Hapus Pengeluaran?');
 
   if (yakinHapus) {
     const row = btn.closest('tr');
@@ -500,10 +563,26 @@ function hitungSemua() {
   if (tglLakuInput) {
     if (detailStatus === 'Ready') {
       tglLakuInput.disabled = true;
-      tglLakuInput.value = ''; // clear value if Ready
+      if (tglLakuInput._flatpickr) {
+        if (tglLakuInput._flatpickr.input.value !== '') {
+          tglLakuInput._flatpickr.setDate('', false);
+        }
+        if (tglLakuInput._flatpickr.altInput) {
+          tglLakuInput._flatpickr.altInput.disabled = true;
+          tglLakuInput._flatpickr.altInput.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+      } else {
+        tglLakuInput.value = '';
+      }
       tglLakuInput.classList.add('opacity-50', 'cursor-not-allowed');
     } else {
       tglLakuInput.disabled = false;
+      if (tglLakuInput._flatpickr) {
+        if (tglLakuInput._flatpickr.altInput) {
+          tglLakuInput._flatpickr.altInput.disabled = false;
+          tglLakuInput._flatpickr.altInput.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+      }
       tglLakuInput.classList.remove('opacity-50', 'cursor-not-allowed');
     }
   }
@@ -526,10 +605,19 @@ function hitungSemua() {
 
   const totalModal = mNiko + mFikri;
   const sisaSaldo = totalModal - totalPengeluaran;
-  const totalUntung = penjualan - totalPengeluaran;
-  const untungPerorang = totalUntung / 2;
-  const akhirNiko = mNiko + untungPerorang;
-  const akhirFikri = mFikri + untungPerorang;
+
+  // Untung bersih dan bagi hasil dinolkan jika belum terjual (harga penjualan kosong / nol)
+  let totalUntung = 0;
+  let untungPerorang = 0;
+  let akhirNiko = mNiko;
+  let akhirFikri = mFikri;
+
+  if (penjualan > 0) {
+    totalUntung = penjualan - totalPengeluaran;
+    untungPerorang = totalUntung / 2;
+    akhirNiko = mNiko + untungPerorang;
+    akhirFikri = mFikri + untungPerorang;
+  }
 
   document.getElementById('txtTotalModal').innerText = formatRupiahDisplay(totalModal);
   document.getElementById('txtTotalPengeluaran').innerText = formatRupiahDisplay(totalPengeluaran);
@@ -596,9 +684,47 @@ function kirimDataKeSheet() {
         btnSimpan.disabled = false;
         btnSimpan.classList.remove('opacity-60', 'cursor-not-allowed');
       }
-      if (btnText) btnText.innerText = '🚀 Sinkronisasikan Data ke Google Sheets';
+      if (btnText) btnText.innerText = 'Sinkronisasikan Data';
       if (btnLoader) btnLoader.classList.add('hidden');
     });
+}
+
+async function hapusMotorDariSheet() {
+  const yakinHapus = await tampilkanKonfirmasi(
+    'Apakah kamu yakin ingin menghapus unit motor ini dari database? Tindakan ini tidak bisa dibatalkan.',
+    'Hapus Unit Motor?'
+  );
+
+  if (yakinHapus) {
+    const endpointUrl = APPS_SCRIPT_URL;
+    const loader = document.getElementById('globalLoader');
+    if (loader) {
+      loader.classList.remove('hidden');
+      const p = loader.querySelector('p');
+      if (p) p.innerText = 'Menghapus unit motor...';
+    }
+
+    // Hindari trigger auto-sync pas navigasi kembali
+    window.apakahAdaPerubahan = false;
+
+    fetch(endpointUrl, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        id: idMotorAktif,
+        action: 'delete'
+      }),
+    })
+      .then(() => {
+        window.location.href = 'index.html';
+      })
+      .catch((err) => {
+        alert('Gagal menghapus motor dari database');
+        console.error(err);
+        if (loader) loader.classList.add('hidden');
+      });
+  }
 }
 
 function tampilkanToast(pesan) {
@@ -616,44 +742,3 @@ function tampilkanToast(pesan) {
   }, 3500);
 }
 
-function tampilkanKonfirmasi(pesan) {
-  return new Promise((resolve) => {
-    const modal = document.getElementById('customConfirmModal');
-    if (!modal) {
-      resolve(true);
-      return;
-    } // if modal not found, just confirm
-
-    const modalBox = modal.querySelector('.relative');
-    const msgElement = document.getElementById('confirmModalMessage');
-    const btnCancel = document.getElementById('btnCancelConfirm');
-    const btnAction = document.getElementById('btnActionConfirm');
-
-    if (pesan) msgElement.innerText = pesan;
-
-    modal.classList.remove('opacity-0', 'pointer-events-none');
-    modalBox.classList.remove('scale-95');
-    modalBox.classList.add('scale-100');
-
-    function tutupModal(hasil) {
-      modal.classList.add('opacity-0', 'pointer-events-none');
-      modalBox.classList.remove('scale-100');
-      modalBox.classList.add('scale-95');
-
-      btnCancel.removeEventListener('click', onCancel);
-      btnAction.removeEventListener('click', onConfirm);
-
-      resolve(hasil);
-    }
-
-    function onCancel() {
-      tutupModal(false);
-    }
-    function onConfirm() {
-      tutupModal(true);
-    }
-
-    btnCancel.addEventListener('click', onCancel);
-    btnAction.addEventListener('click', onConfirm);
-  });
-}
