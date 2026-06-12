@@ -10,7 +10,155 @@ window.addEventListener('DOMContentLoaded', () => {
   if (btnSpreadsheet) {
     btnSpreadsheet.href = SPREADSHEET_URL;
   }
+  inisialisasiFilterTahun();
+
+  // Inisialisasi dropdown kustom beranda
+  konfigurasiCustomSelect('filterBulan');
+  konfigurasiCustomSelect('filterTahun');
+  konfigurasiCustomSelect('filterStatus');
+
   tarikDataDariSheet();
+});
+
+function inisialisasiFilterTahun() {
+  const selectTahun = document.getElementById('filterTahun');
+  if (!selectTahun) return;
+
+  const tahunMulai = 2025;
+  const tahunSekarang = new Date().getFullYear();
+
+  // Reset options but keep "Semua Tahun"
+  selectTahun.innerHTML = '<option value="">Semua Tahun</option>';
+
+  // Generate options from tahunSekarang down to tahunMulai (newest on top)
+  for (let tahun = tahunSekarang; tahun >= tahunMulai; tahun--) {
+    const opt = document.createElement('option');
+    opt.value = tahun;
+    opt.innerText = tahun;
+    selectTahun.appendChild(opt);
+  }
+}
+
+function toggleFilter() {
+  const container = document.getElementById('containerFilter');
+  const arrow = document.getElementById('arrowFilter');
+  if (!container || !arrow) return;
+
+  const isHidden = container.classList.contains('hidden');
+  if (isHidden) {
+    container.classList.remove('hidden');
+    container.classList.add('grid');
+    arrow.classList.add('rotate-180');
+  } else {
+    container.classList.add('hidden');
+    container.classList.remove('grid');
+    arrow.classList.remove('rotate-180');
+  }
+}
+
+function konfigurasiCustomSelect(selectId) {
+  const nativeSelect = document.getElementById(selectId);
+  if (!nativeSelect) return;
+
+  // Sembunyikan native select bawaan browser
+  nativeSelect.classList.add('hidden');
+
+  // Cari atau buat pembungkus kustom select
+  let customContainer = document.getElementById(`custom-select-${selectId}`);
+  if (!customContainer) {
+    customContainer = document.createElement('div');
+    customContainer.id = `custom-select-${selectId}`;
+    customContainer.className = 'relative w-full custom-select-container';
+    nativeSelect.parentNode.insertBefore(customContainer, nativeSelect.nextSibling);
+  }
+
+  // Ambil teks opsi terpilih saat ini
+  const selectedOption = nativeSelect.options[nativeSelect.selectedIndex] || nativeSelect.options[0];
+  const selectedText = selectedOption ? selectedOption.text : 'Pilih...';
+
+  // Render trigger button dan panel list
+  customContainer.innerHTML = `
+    <button type="button" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none flex justify-between items-center font-medium cursor-pointer text-gray-800 shadow-sm hover:border-gray-400 transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+      <span class="custom-select-label">${selectedText}</span>
+      <svg class="w-4 h-4 text-gray-500 transition-transform duration-200 custom-select-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+    <div class="absolute z-40 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl hidden py-1 max-h-60 overflow-y-auto transition-all custom-select-panel">
+    </div>
+  `;
+
+  const button = customContainer.querySelector('button');
+  const panel = customContainer.querySelector('.custom-select-panel');
+  const arrow = customContainer.querySelector('.custom-select-arrow');
+
+  // Isi opsi item secara dinamis
+  Array.from(nativeSelect.options).forEach((option) => {
+    const isSelected = option.value === nativeSelect.value;
+    const item = document.createElement('button');
+    item.type = 'button';
+    item.className = `w-full text-left px-4 py-2.5 text-sm transition-all cursor-pointer flex justify-between items-center ${
+      isSelected
+        ? 'bg-blue-50 text-blue-600 font-bold'
+        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900 font-medium'
+    }`;
+    item.innerHTML = `
+      <span>${option.text}</span>
+      ${isSelected ? `<svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>` : ''}
+    `;
+
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      nativeSelect.value = option.value;
+      
+      // Update label di tombol trigger
+      customContainer.querySelector('.custom-select-label').innerText = option.text;
+
+      // Tutup panel dropdown
+      panel.classList.add('hidden');
+      arrow.classList.remove('rotate-180');
+
+      // Picu event change di select asli agar fungsi pencarian ter-trigger
+      nativeSelect.dispatchEvent(new Event('change'));
+
+      // Inisialisasi ulang agar status 'selected' / tanda centang berpindah
+      konfigurasiCustomSelect(selectId);
+    });
+
+    panel.appendChild(item);
+  });
+
+  // Toggle buka/tutup dropdown panel
+  button.addEventListener('click', (e) => {
+    e.stopPropagation();
+    
+    // Tutup panel lain yang sedang terbuka
+    document.querySelectorAll('.custom-select-panel').forEach((otherPanel) => {
+      if (otherPanel !== panel) {
+        otherPanel.classList.add('hidden');
+        otherPanel.previousElementSibling.querySelector('.custom-select-arrow')?.classList.remove('rotate-180');
+      }
+    });
+
+    const isHidden = panel.classList.contains('hidden');
+    if (isHidden) {
+      panel.classList.remove('hidden');
+      arrow.classList.add('rotate-180');
+    } else {
+      panel.classList.add('hidden');
+      arrow.classList.remove('rotate-180');
+    }
+  });
+}
+
+// Tutup semua dropdown panel bila mengklik di luar area dropdown kustom
+document.addEventListener('click', () => {
+  document.querySelectorAll('.custom-select-panel').forEach((panel) => {
+    panel.classList.add('hidden');
+  });
+  document.querySelectorAll('.custom-select-arrow').forEach((arrow) => {
+    arrow.classList.remove('rotate-180');
+  });
 });
 
 function tarikDataDariSheet() {
@@ -77,6 +225,7 @@ function renderBeranda() {
   let ready = 0,
     terjual = 0,
     totalTercatat = 0;
+  let renderedCount = 0;
 
   listStokMotor.forEach((motor, index) => {
     // Jalankan kalkulasi counter internal untuk status aslinya terlebih dahulu
@@ -111,7 +260,7 @@ function renderBeranda() {
 
     card.innerHTML = `
             <div class="flex justify-between items-center mb-3">
-                <div class="text-xs font-bold text-gray-400">#${index + 1}</div>
+                <div class="text-xs font-bold text-gray-400">#${listStokMotor.length - index}</div>
                 <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase ${motor.status === 'Ready' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}">${motor.status}</span>
             </div>
             <div>
@@ -123,7 +272,18 @@ function renderBeranda() {
             </div>
         `;
     grid.appendChild(card);
+    renderedCount++;
   });
+
+  if (renderedCount === 0) {
+    grid.innerHTML = `
+      <div class="col-span-full flex flex-col items-center justify-center py-12 px-4 text-center">
+        <div class="w-16 h-16 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center text-2xl shadow-inner mb-4">🔍</div>
+        <h3 class="text-base font-bold text-gray-700">Unit Tidak Ditemukan</h3>
+        <p class="text-xs text-gray-400 mt-1 max-w-xs mx-auto">Tidak ada unit motor yang cocok dengan kriteria filter saat ini.</p>
+      </div>
+    `;
+  }
 
   // UPDATE BADGE STATISTIK COUNTER DI ATAS TABEL
   const cTotal = document.getElementById('countTotal');
@@ -146,6 +306,7 @@ function bukaDetailMotor(id) {
 
   document.getElementById('detailNamaMotorDisplay').innerText = motor.nama;
   document.getElementById('detailStatusSelect').value = motor.status;
+  konfigurasiCustomSelect('detailStatusSelect');
   document.getElementById('tglBeli').value = motor.tglBeli || '';
   document.getElementById('tglLaku').value = motor.tglLaku || '';
   document.getElementById('modalNiko').value = (motor.modalNiko || 0).toLocaleString('id-ID');
@@ -158,10 +319,54 @@ function bukaDetailMotor(id) {
     motor.pengeluaran.forEach((x) => tambahBarisPengeluaran(x.ket, x.item, false));
   }
   hitungSemua();
+  
+  setTimeout(() => {
+    window.apakahAdaPerubahan = false;
+  }, 100);
+
+  // Push state to intercept browser/phone back button
+  history.pushState({ page: 'detail' }, null, window.location.href);
+  
+  if (!window.hasPopstateListener) {
+    window.addEventListener('popstate', function(event) {
+      kembaliKeBeranda();
+    });
+    window.hasPopstateListener = true;
+  }
 }
 
 function kembaliKeBeranda() {
-  window.location.href = 'index.html';
+  if (window.apakahAdaPerubahan) {
+    syncDanKembali();
+  } else {
+    window.location.href = 'index.html';
+  }
+}
+
+function syncDanKembali() {
+  const endpointUrl = APPS_SCRIPT_URL;
+  hitungSemua();
+
+  const loader = document.getElementById('globalLoader');
+  if (loader) {
+    loader.classList.remove('hidden');
+    const p = loader.querySelector('p');
+    if (p) p.innerText = 'Menyimpan perubahan otomatis...';
+  }
+
+  fetch(endpointUrl, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payloadData),
+  })
+    .then(() => {
+      window.location.href = 'index.html';
+    })
+    .catch((err) => {
+      console.error(err);
+      window.location.href = 'index.html';
+    });
 }
 
 function prosesTambahMotor() {
@@ -246,7 +451,7 @@ function tambahBarisPengeluaran(keterangan = '', jumlah = '0', hitungUlang = tru
   const index = tbody.rows.length + 1;
   const tr = document.createElement('tr');
   tr.innerHTML = `
-        <td class="p-3 text-center text-sm text-gray-400 index-number font-medium">${index}</td>
+        <td class="p-3 text-center text-sm text-gray-400 index-number font-medium hidden sm:table-cell">${index}</td>
         <td class="p-2"><input type="text" value="${keterangan}" placeholder="Keterangan..." class="w-full bg-transparent border-b border-transparent focus:border-blue-500 py-1 px-2 focus:outline-none text-sm class-keterangan"></td>
         <td class="p-2"><input type="text" value="${jumlah}" placeholder="0" class="w-full bg-transparent border-b border-transparent focus:border-blue-500 py-1 px-2 focus:outline-none text-sm text-right font-semibold class-jumlah" oninput="handleInputRupiah(this)"></td>
         <td class="p-2 text-center"><button class="btn-hapus-operasional text-red-500 hover:text-red-700 text-xs font-bold cursor-pointer">Hapus</button></td>
@@ -289,6 +494,23 @@ function urutkanNomorTabel() {
 function hitungSemua() {
   const mNikoElem = document.getElementById('modalNiko');
   if (!mNikoElem) return; // if not on detail page, abort calculation
+
+  const detailStatus = document.getElementById('detailStatusSelect').value;
+  const tglLakuInput = document.getElementById('tglLaku');
+  if (tglLakuInput) {
+    if (detailStatus === 'Ready') {
+      tglLakuInput.disabled = true;
+      tglLakuInput.value = ''; // clear value if Ready
+      tglLakuInput.classList.add('opacity-50', 'cursor-not-allowed');
+    } else {
+      tglLakuInput.disabled = false;
+      tglLakuInput.classList.remove('opacity-50', 'cursor-not-allowed');
+    }
+  }
+
+  if (window.apakahAdaPerubahan !== undefined) {
+    window.apakahAdaPerubahan = true;
+  }
 
   const mNiko = getCleanNumber(mNikoElem.value);
   const mFikri = getCleanNumber(document.getElementById('modalFikri').value);

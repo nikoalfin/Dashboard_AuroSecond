@@ -30,11 +30,11 @@
                     </div>
                     <div class="flex flex-col">
                         <label class="text-[10px] text-gray-500 font-semibold uppercase mb-0.5">Tgl Beli</label>
-                        <input type="date" id="tglBeli" class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none" />
+                        <input type="date" id="tglBeli" class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none" onchange="hitungSemua()" />
                     </div>
                     <div class="flex flex-col">
                         <label class="text-[10px] text-gray-500 font-semibold uppercase mb-0.5">Tgl Laku</label>
-                        <input type="date" id="tglLaku" class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none" />
+                        <input type="date" id="tglLaku" class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none" onchange="hitungSemua()" />
                     </div>
                 </div>
             </div>
@@ -69,12 +69,12 @@
                     <button onclick="tambahBarisPengeluaran('', '0')" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-2 rounded-lg cursor-pointer">+ Tambah Pengeluaran</button>
                 </div>
                 <div class="overflow-x-auto border border-gray-200 rounded-lg">
-                    <table class="w-full text-left border-collapse">
+                    <table class="w-full min-w-[420px] text-left border-collapse">
                         <thead>
                             <tr class="bg-gray-100 text-gray-600 text-xs uppercase font-bold border-b border-gray-200">
-                                <th class="p-3 w-12 text-center">No</th>
+                                <th class="p-3 w-12 text-center hidden sm:table-cell">No</th>
                                 <th class="p-3">Keterangan</th>
-                                <th class="p-3 w-48 text-right">Jumlah (Rp)</th>
+                                <th class="p-3 w-32 sm:w-40 text-right">Jumlah (Rp)</th>
                                 <th class="p-3 w-16 text-center">Aksi</th>
                             </tr>
                         </thead>
