@@ -214,7 +214,7 @@ function tambahBarisPengeluaran(keterangan = '', jumlah = '0', hitungUlang = tru
   tr.className = 'hover:bg-gray-50 border-b border-gray-150 transition';
 
   const tdNo = document.createElement('td');
-  tdNo.className = 'py-3 px-4 text-xs font-bold text-gray-400 text-center';
+  tdNo.className = 'py-3 px-4 text-xs font-bold text-gray-400 text-center hidden sm:table-cell';
 
   const tdKet = document.createElement('td');
   tdKet.className = 'py-2 px-3';
