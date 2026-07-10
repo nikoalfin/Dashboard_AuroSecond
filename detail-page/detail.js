@@ -181,9 +181,9 @@ function bukaDetailMotor(id) {
   const tbody = document.getElementById('bodyPengeluaran');
   if (tbody) {
     tbody.innerHTML = '';
-    const listPengeluaran = Array.isArray(motor.pengeluran)
-      ? motor.pengeluran
-      : (typeof motor.pengeluran === 'string' && motor.pengeluran ? JSON.parse(motor.pengeluran) : []);
+    const listPengeluaran = Array.isArray(motor.pengeluaran)
+      ? motor.pengeluaran
+      : (typeof motor.pengeluaran === 'string' && motor.pengeluaran ? JSON.parse(motor.pengeluaran) : []);
 
     listPengeluaran.forEach((ops) => {
       tambahBarisPengeluaran(ops.ket, String(ops.item), false);
