@@ -229,20 +229,16 @@ function tambahBarisPengeluaran(keterangan = '', jumlah = '0', hitungUlang = tru
   tdKet.appendChild(inputKet);
 
   const tdJml = document.createElement('td');
-  tdJml.className = 'py-2 px-3 relative';
-  const divJml = document.createElement('div');
-  divJml.className = 'relative';
-  divJml.innerHTML = '<span class="absolute left-3 top-1 text-gray-500 text-sm">Rp</span>';
+  tdJml.className = 'py-2 px-3';
   const inputJml = document.createElement('input');
   inputJml.type = 'text';
-  inputJml.className = 'w-full bg-white border border-gray-300 rounded pl-10 pr-3 py-1 text-sm text-right font-semibold text-gray-700 class-jumlah';
+  inputJml.className = 'w-full bg-white border border-gray-300 rounded px-2.5 py-1 text-sm text-right font-semibold text-gray-700 class-jumlah';
   const cleanJumlah = typeof jumlah === 'number' ? jumlah : Number(String(jumlah).replace(/\D/g, '')) || 0;
   inputJml.value = cleanJumlah.toLocaleString('id-ID');
   inputJml.addEventListener('input', () => {
     handleInputRupiah(inputJml);
   });
-  divJml.appendChild(inputJml);
-  tdJml.appendChild(divJml);
+  tdJml.appendChild(inputJml);
 
   const tdAksi = document.createElement('td');
   tdAksi.className = 'py-2 px-3 text-center';
