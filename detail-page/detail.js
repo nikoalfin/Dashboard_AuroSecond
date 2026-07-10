@@ -529,7 +529,10 @@ function handlePilihGambar(input) {
   }
 }
 
-function hapusGambar() {
+async function hapusGambar() {
+  const yakinHapus = await tampilkanKonfirmasi('Apakah Anda yakin ingin menghapus foto unit motor ini?', 'Hapus Foto Unit?');
+  if (!yakinHapus) return;
+
   selectedGambarBase64 = null;
   selectedGambarNama = null;
   currentGambarUrl = '';
