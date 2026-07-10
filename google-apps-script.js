@@ -107,8 +107,8 @@ function doPost(e) {
           console.warn("Gagal mengatur sharing: " + shareError.toString());
         }
         
-        // Buat direct link download agar gambar bisa langsung ditampilkan di HTML
-        gambarUrl = "https://drive.google.com/uc?export=download&id=" + file.getId();
+        // Buat direct link agar gambar bisa langsung ditampilkan di HTML (workaround 2024+)
+        gambarUrl = "https://lh3.googleusercontent.com/d/" + file.getId();
         logToSheet("Gambar sukses diupload ke Drive: " + gambarUrl);
       } catch (uploadError) {
         logToSheet("Gagal mengupload gambar ke Drive: " + uploadError.toString());

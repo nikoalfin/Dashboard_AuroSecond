@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aurosecond Dashboard - Detail</title>
-    <link rel="icon" type="image/jpeg" href="image/auro.jpeg" />
+    <link rel="icon" type="image/jpeg" href="../image/auro.jpeg" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <!-- Flatpickr Library CDN -->
@@ -13,8 +13,8 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <!-- Komponen Kustom -->
-    <link rel="stylesheet" href="components/calendar.css" />
-    <script src="components/confirm-modal.js"></script>
+    <link rel="stylesheet" href="../components/calendar.css" />
+    <script src="../components/confirm-modal.js"></script>
 </head>
 
 <body class="bg-gray-50 text-gray-800 min-h-screen p-4 md:p-8">
@@ -28,8 +28,7 @@
             class="mb-4 text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-2 cursor-pointer">
             <i class="fa-solid fa-arrow-left"></i> Kembali & Update Dashboard</button>
         <div class="bg-white rounded-xl shadow-xl p-6 border border-gray-200">
-            <div
-                class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-4 mb-6 gap-4">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-4 mb-6 gap-4">
                 <div class="flex-1 w-full md:w-auto">
                     <input type="text" id="detailNamaMotorDisplay" 
                         class="text-2xl font-extrabold text-blue-600 bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-500 focus:outline-none w-full capitalize py-1 transition-all duration-200 rounded-none"
@@ -70,9 +69,9 @@
                         <i class="fa-solid fa-camera text-2xl mb-1"></i>
                         <span class="text-[10px] font-bold uppercase tracking-wider">Unggah Foto</span>
                     </div>
-                    <!-- Input File -->
-                    <input type="file" id="inputGambar" class="hidden" accept="image/*" onchange="handlePilihGambar(this)" />
                 </div>
+                <!-- Input File -->
+                <input type="file" id="inputGambar" class="hidden" accept="image/*" onchange="handlePilihGambar(this)" />
                 <div class="flex-1 text-center md:text-left">
                     <h3 class="text-sm font-bold text-gray-700">Foto Unit Motor</h3>
                     <p class="text-xs text-gray-400 mt-1 mb-3">Unggah foto unit motor untuk memudahkan identifikasi visual. Format JPG, PNG, atau WEBP.</p>
@@ -141,8 +140,7 @@
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-gray-200">
                 <div class="space-y-3 bg-gray-50 p-4 rounded-lg border border-gray-200">
-                    <h3
-                        class="text-sm font-bold uppercase tracking-wider text-gray-600 border-b border-gray-200 pb-1.5">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-gray-600 border-b border-gray-200 pb-1.5">
                         Ringkasan Kas</h3>
                     <div class="flex justify-between text-sm"><span>Total Modal Gabungan:</span><span id="txtTotalModal"
                             class="font-semibold text-gray-800">Rp 0</span></div>
@@ -156,13 +154,11 @@
                     </div>
                 </div>
                 <div class="space-y-3 bg-blue-50/50 p-4 rounded-lg border border-blue-100">
-                    <h3
-                        class="text-sm font-bold uppercase tracking-wider text-blue-700 border-b border-blue-100 pb-1.5">
+                    <h3 class="text-sm font-bold uppercase tracking-wider text-blue-700 border-b border-blue-100 pb-1.5">
                         Bagi Hasil Perorang (50/50)</h3>
                     <div class="flex justify-between text-sm"><span>Untung Bersih Perorang:</span><span
                             id="txtUntungPerorang" class="font-bold text-blue-700">Rp 0</span></div>
-                    <div class="flex justify-between text-sm pt-2 border-t border-blue-100"><span>Modal Akhir
-                            Niko:</span><span id="txtAkhirNiko" class="font-bold text-gray-800">Rp 0</span></div>
+                    <div class="flex justify-between text-sm pt-2 border-t border-blue-100"><span>Modal Akhir Niko:</span><span id="txtAkhirNiko" class="font-bold text-gray-800">Rp 0</span></div>
                     <div class="flex justify-between text-sm"><span>Modal Akhir Fikri:</span><span id="txtAkhirFikri"
                             class="font-bold text-gray-800">Rp 0</span></div>
                 </div>
@@ -188,8 +184,7 @@
     <!-- toast synchronization -->
     <div id="customToast"
         class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 ease-out flex items-center gap-3 bg-slate-900 border border-slate-850 text-white px-5 py-3.5 rounded-xl shadow-2xl max-w-sm">
-        <div
-            class="flex items-center justify-center bg-emerald-500 text-white rounded-full p-1 h-6 w-6 shrink-0 animate-bounce">
+        <div class="flex items-center justify-center bg-emerald-500 text-white rounded-full p-1 h-6 w-6 shrink-0 animate-bounce">
             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
             </svg>
@@ -200,9 +195,9 @@
         </div>
     </div>
 
-
-
-    <script src="app.js"></script>
+    <script src="../config.js"></script>
+    <script src="../shared.js"></script>
+    <script src="detail.js"></script>
 </body>
 
 </html>

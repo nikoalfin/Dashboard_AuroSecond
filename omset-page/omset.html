@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Aurosecond - Laporan Omset & Keuntungan</title>
+  <link rel="icon" type="image/jpeg" href="../image/auro.jpeg" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Chart.js Library CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-800 min-h-screen p-4 md:p-8">
+  <!-- Global Loader -->
+  <div id="globalLoader" class="fixed inset-0 bg-white/80 z-50 flex flex-col items-center justify-center gap-3">
+    <div class="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full"></div>
+    <p class="text-sm font-bold text-gray-600">Loading data keuangan...</p>
+  </div>
+
+  <div class="max-w-6xl mx-auto">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-gray-200 pb-4 mb-6 gap-4">
+      <div>
+        <h1 class="text-3xl font-extrabold text-blue-600 flex items-center gap-2">
+          <i class="fa-solid fa-chart-line"></i> Analisis Omset & Profit
+        </h1>
+        <p class="text-sm text-gray-500">Laporan untung bersih per bulan bagi hasil Niko & Fikri secara realtime</p>
+      </div>
+      <div>
+        <a href="../home-page/index.html" class="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 cursor-pointer">
+          <i class="fa-solid fa-arrow-left" style="transform: translateY(1px);"></i> Kembali ke Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Filter Section -->
+    <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm mb-6">
+      <h2 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-filter text-blue-500"></i> Filter Laporan
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label for="filterBulan" class="block text-xs font-bold text-gray-500 uppercase mb-1">Bulan</label>
+          <select id="filterBulan" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" onchange="prosesDataKeuangan()">
+            <option value="">Semua Bulan (Breakdown Bulanan)</option>
+            <option value="1">Januari</option>
+            <option value="2">Februari</option>
+            <option value="3">Maret</option>
+            <option value="4">April</option>
+            <option value="5">Mei</option>
+            <option value="6">Juni</option>
+            <option value="7">Juli</option>
+            <option value="8">Agustus</option>
+            <option value="9">September</option>
+            <option value="10">Oktober</option>
+            <option value="11">November</option>
+            <option value="12">Desember</option>
+          </select>
+        </div>
+        <div>
+          <label for="filterTahun" class="block text-xs font-bold text-gray-500 uppercase mb-1">Tahun</label>
+          <select id="filterTahun" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" onchange="prosesDataKeuangan()">
+            <!-- Akan diisi secara dinamis oleh JavaScript -->
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Cards Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <!-- Card Omset -->
+      <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-5 shadow-md flex flex-col justify-between relative overflow-hidden">
+        <div class="absolute -right-4 -bottom-4 opacity-10 text-7xl"><i class="fa-solid fa-coins"></i></div>
+        <span class="text-xs font-bold uppercase tracking-wider text-blue-100">Total Omset</span>
+        <h3 id="txtTotalOmset" class="text-2xl font-extrabold mt-2">Rp 0</h3>
+        <span class="text-[10px] text-blue-200 mt-1">Akumulasi Harga Jual</span>
+      </div>
+
+      <!-- Card Untung Bersih -->
+      <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-xl p-5 shadow-md flex flex-col justify-between relative overflow-hidden">
+        <div class="absolute -right-4 -bottom-4 opacity-10 text-7xl"><i class="fa-solid fa-money-bill-trend-up"></i></div>
+        <span class="text-xs font-bold uppercase tracking-wider text-emerald-100">Total Untung Bersih</span>
+        <h3 id="txtTotalUntung" class="text-2xl font-extrabold mt-2">Rp 0</h3>
+        <span class="text-[10px] text-emerald-200 mt-1">Omset - Modal & Operasional</span>
+      </div>
+
+      <!-- Card Untung Niko -->
+      <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
+        <div class="absolute -right-4 -bottom-4 opacity-5 text-7xl text-indigo-600"><i class="fa-solid fa-user-tie"></i></div>
+        <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Bagi Hasil Niko (50%)</span>
+        <h3 id="txtUntungNiko" class="text-2xl font-extrabold text-indigo-600 mt-2">Rp 0</h3>
+        <span class="text-[10px] text-gray-400 mt-1">Bersih untuk Niko</span>
+      </div>
+
+      <!-- Card Untung Fikri -->
+      <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
+        <div class="absolute -right-4 -bottom-4 opacity-5 text-7xl text-teal-600"><i class="fa-solid fa-user-tie"></i></div>
+        <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Bagi Hasil Fikri (50%)</span>
+        <h3 id="txtUntungFikri" class="text-2xl font-extrabold text-teal-600 mt-2">Rp 0</h3>
+        <span class="text-[10px] text-gray-400 mt-1">Bersih untuk Fikri</span>
+      </div>
+    </div>
+
+    <!-- Chart Section -->
+    <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm mb-6">
+      <h2 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+        <i class="fa-solid fa-chart-simple text-blue-500"></i> Visualisasi Grafik Keuntungan
+      </h2>
+      <div class="w-full relative h-[320px] md:h-[400px]">
+        <canvas id="chartKeuangan"></canvas>
+      </div>
+    </div>
+
+    <!-- Table Section -->
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+      <div class="p-5 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
+        <h2 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+          <i class="fa-solid fa-list-check text-blue-500"></i> Rincian Penjualan Terfilter
+        </h2>
+        <span id="txtJumlahData" class="text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded-full">0 Unit</span>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse text-sm">
+          <thead>
+            <tr class="bg-gray-50 text-gray-500 font-semibold border-b border-gray-200 text-xs uppercase tracking-wider">
+              <th class="py-3.5 px-5">Nama Unit</th>
+              <th class="py-3.5 px-5">Tgl Jual</th>
+              <th class="py-3.5 px-5 text-right">Harga Jual (Omset)</th>
+              <th class="py-3.5 px-5 text-right">Biaya Ops & Modal</th>
+              <th class="py-3.5 px-5 text-right">Untung Bersih</th>
+              <th class="py-3.5 px-5 text-right">Bagi Hasil (Masing-masing)</th>
+            </tr>
+          </thead>
+          <tbody id="bodyTabelKeuangan" class="divide-y divide-gray-150">
+            <!-- Akan diisi secara dinamis oleh JavaScript -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script src="../config.js"></script>
+  <script src="omset.js"></script>
+</body>
+</html>
