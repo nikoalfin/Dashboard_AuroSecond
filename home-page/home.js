@@ -146,8 +146,8 @@ function renderBeranda() {
     });
 
     const imgHtml = motor.gambar
-      ? `<div class="w-full h-32 rounded-lg overflow-hidden mb-3 bg-gray-100 border border-gray-100"><img src="${motor.gambar}" class="w-full h-full object-cover" /></div>`
-      : `<div class="w-full h-32 rounded-lg bg-gray-50 flex items-center justify-center mb-3 text-gray-300 border border-dashed border-gray-200"><i class="fa-solid fa-motorcycle text-3xl"></i></div>`;
+      ? `<div class="w-full aspect-[4/3] rounded-lg overflow-hidden mb-3 bg-gray-100 border border-gray-100"><img src="${motor.gambar}" class="w-full h-full object-cover" /></div>`
+      : `<div class="w-full aspect-[4/3] rounded-lg bg-gray-50 flex items-center justify-center mb-3 text-gray-300 border border-dashed border-gray-200"><i class="fa-solid fa-motorcycle text-3xl"></i></div>`;
 
     card.innerHTML = `
             <div class="flex justify-between items-center mb-3">
