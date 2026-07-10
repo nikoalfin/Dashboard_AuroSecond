@@ -232,7 +232,7 @@ function tambahBarisPengeluaran(keterangan = '', jumlah = '0', hitungUlang = tru
   tdJml.className = 'py-2 px-3';
   const inputJml = document.createElement('input');
   inputJml.type = 'text';
-  inputJml.className = 'w-full bg-white border border-gray-300 rounded px-2.5 py-1 text-sm text-right font-semibold text-gray-700 class-jumlah';
+  inputJml.className = 'w-full bg-white border border-gray-300 rounded px-2.5 py-1 text-sm text-left font-semibold text-gray-700 class-jumlah';
   const cleanJumlah = typeof jumlah === 'number' ? jumlah : Number(String(jumlah).replace(/\D/g, '')) || 0;
   inputJml.value = cleanJumlah.toLocaleString('id-ID');
   inputJml.addEventListener('input', () => {
