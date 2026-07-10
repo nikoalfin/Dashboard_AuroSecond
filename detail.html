@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aurosecond Dashboard - Detail</title>
     <link rel="icon" type="image/jpeg" href="image/auro.jpeg" />
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <!-- Flatpickr Library CDN -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css" />
@@ -30,9 +30,12 @@
         <div class="bg-white rounded-xl shadow-xl p-6 border border-gray-200">
             <div
                 class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-4 mb-6 gap-4">
-                <div>
-                    <h2 id="detailNamaMotorDisplay" class="text-2xl font-extrabold text-blue-600">Nama Motor</h2>
-                    <p class="text-sm text-gray-500">Rincian modal awal dan operasional unit</p>
+                <div class="flex-1 w-full md:w-auto">
+                    <input type="text" id="detailNamaMotorDisplay" 
+                        class="text-2xl font-extrabold text-blue-600 bg-transparent border-b-2 border-transparent hover:border-gray-200 focus:border-blue-500 focus:outline-none w-full capitalize py-1 transition-all duration-200 rounded-none"
+                        placeholder="Nama Motor"
+                        oninput="hitungSemua()" />
+                    <p class="text-sm text-gray-500 mt-1">Rincian modal awal dan operasional unit</p>
                 </div>
                 <div class="flex flex-wrap gap-3 w-full md:w-auto items-center">
                     <div class="flex flex-col">
@@ -53,6 +56,33 @@
                         <label class="text-[10px] text-gray-500 font-semibold uppercase mb-0.5">Tgl Laku</label>
                         <input type="text" id="tglLaku" placeholder="Pilih tanggal..."
                             class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs focus:outline-none cursor-pointer w-full md:w-32" />
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Foto Unit -->
+            <div class="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col md:flex-row gap-4 items-center">
+                <div class="w-full md:w-48 h-32 bg-gray-200 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center relative overflow-hidden cursor-pointer hover:bg-gray-300 transition group" id="btnPilihGambar" onclick="document.getElementById('inputGambar').click()">
+                    <!-- Preview Image -->
+                    <img id="previewGambar" class="w-full h-full object-cover hidden" />
+                    <!-- Upload Placeholder Icon -->
+                    <div id="placeholderGambar" class="flex flex-col items-center justify-center text-gray-400 group-hover:text-blue-500 transition">
+                        <i class="fa-solid fa-camera text-2xl mb-1"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-wider">Unggah Foto</span>
+                    </div>
+                    <!-- Input File -->
+                    <input type="file" id="inputGambar" class="hidden" accept="image/*" onchange="handlePilihGambar(this)" />
+                </div>
+                <div class="flex-1 text-center md:text-left">
+                    <h3 class="text-sm font-bold text-gray-700">Foto Unit Motor</h3>
+                    <p class="text-xs text-gray-400 mt-1 mb-3">Unggah foto unit motor untuk memudahkan identifikasi visual. Format JPG, PNG, atau WEBP.</p>
+                    <div class="flex gap-2 justify-center md:justify-start">
+                        <button onclick="document.getElementById('inputGambar').click()" class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-cloud-arrow-up"></i> Pilih Foto
+                        </button>
+                        <button id="btnHapusGambar" onclick="hapusGambar()" class="bg-red-500 hover:bg-red-600 text-white font-bold text-xs px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 transition hidden">
+                            <i class="fa-solid fa-trash-can"></i> Hapus Foto
+                        </button>
                     </div>
                 </div>
             </div>

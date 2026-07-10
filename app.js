@@ -1,9 +1,14 @@
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbznPeNopsYluBHTCM77pCAdPJluaQrwJgOWanGLQrYR8GB6NPTMok_mPpdnjPKcGLCP3Q/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzAEJuZoWq3cTAg9YKPgODiAe-DdoRfOt08X859-v-vr_EeAVp6knF-18DSKK2v8dehqA/exec';
 const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/1zOfS6Sqou_q_o34X4XH2px83DoxRqEmvgOc-GMK0wa4/edit?hl=id&gid=0#gid=0';
 
 let listStokMotor = [];
 let idMotorAktif = null;
 let payloadData = {};
+
+// Variabel gambar unit motor
+let selectedGambarBase64 = null;
+let selectedGambarNama = null;
+let currentGambarUrl = '';
 
 window.addEventListener('DOMContentLoaded', () => {
   const btnSpreadsheet = document.getElementById('btnBukaSpreadsheet');
@@ -131,8 +136,8 @@ function konfigurasiCustomSelect(selectId) {
     const item = document.createElement('button');
     item.type = 'button';
     item.className = `w-full text-left px-4 py-2.5 text-sm transition-all cursor-pointer flex justify-between items-center ${isSelected
-        ? 'bg-blue-50 text-blue-600 font-bold'
-        : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900 font-medium'
+      ? 'bg-blue-50 text-blue-600 font-bold'
+      : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900 font-medium'
       }`;
     item.innerHTML = `
       <span>${option.text}</span>
@@ -293,11 +298,16 @@ function renderBeranda() {
       window.location.href = `detail.html?id=${encodeURIComponent(motor.id)}`;
     });
 
+    const imgHtml = motor.gambar
+      ? `<div class="w-full h-32 rounded-lg overflow-hidden mb-3 bg-gray-100 border border-gray-100"><img src="${motor.gambar}" class="w-full h-full object-cover" /></div>`
+      : `<div class="w-full h-32 rounded-lg bg-gray-50 flex items-center justify-center mb-3 text-gray-300 border border-dashed border-gray-200"><i class="fa-solid fa-motorcycle text-3xl"></i></div>`;
+
     card.innerHTML = `
             <div class="flex justify-between items-center mb-3">
                 <div class="text-xs font-bold text-gray-400">#${listStokMotor.length - index}</div>
                 <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase ${motor.status === 'Ready' ? 'bg-blue-50 text-blue-600 border border-blue-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}">${motor.status}</span>
             </div>
+            ${imgHtml}
             <div>
                 <h3 class="text-base font-bold text-gray-800 capitalize mb-2">${motor.nama}</h3>
                 <p class="text-xs text-gray-400 mb-4">Tgl Beli: ${motor.tglBeli || '-'}</p>
@@ -339,9 +349,35 @@ function bukaDetailMotor(id) {
     return;
   }
 
-  document.getElementById('detailNamaMotorDisplay').innerText = motor.nama;
+  document.getElementById('detailNamaMotorDisplay').value = motor.nama;
   document.getElementById('detailStatusSelect').value = motor.status;
   konfigurasiCustomSelect('detailStatusSelect');
+
+  // Load status gambar unit motor
+  selectedGambarBase64 = null;
+  selectedGambarNama = null;
+  currentGambarUrl = motor.gambar || '';
+
+  const previewImg = document.getElementById('previewGambar');
+  const placeholderDiv = document.getElementById('placeholderGambar');
+  const btnHapus = document.getElementById('btnHapusGambar');
+  const inputGambar = document.getElementById('inputGambar');
+
+  if (inputGambar) inputGambar.value = '';
+
+  if (previewImg && placeholderDiv && btnHapus) {
+    if (currentGambarUrl) {
+      previewImg.src = currentGambarUrl;
+      previewImg.classList.remove('hidden');
+      placeholderDiv.classList.add('hidden');
+      btnHapus.classList.remove('hidden');
+    } else {
+      previewImg.src = '';
+      previewImg.classList.add('hidden');
+      placeholderDiv.classList.remove('hidden');
+      btnHapus.classList.add('hidden');
+    }
+  }
   const tglBeliInput = document.getElementById('tglBeli');
   const tglLakuInput = document.getElementById('tglLaku');
 
@@ -440,6 +476,7 @@ function prosesTambahMotor() {
     penjualan: 0,
     totalPengeluaran: 0,
     pengeluaran: [],
+    gambar: '',
   };
 
   // Langsung posting data ke cloud lalu pindah halaman
@@ -639,7 +676,7 @@ function hitungSemua() {
 
   payloadData = {
     id: idMotorAktif,
-    nama: document.getElementById('detailNamaMotorDisplay').innerText,
+    nama: document.getElementById('detailNamaMotorDisplay').value,
     status: document.getElementById('detailStatusSelect').value,
     tglBeli: document.getElementById('tglBeli').value,
     tglLaku: document.getElementById('tglLaku').value,
@@ -648,6 +685,9 @@ function hitungSemua() {
     penjualan: penjualan,
     totalPengeluaran: totalPengeluaran,
     pengeluaran: arrPengeluaran,
+    gambar: currentGambarUrl,
+    gambarBase64: selectedGambarBase64,
+    gambarNama: selectedGambarNama
   };
 }
 
@@ -740,5 +780,89 @@ function tampilkanToast(pesan) {
     toast.classList.remove('translate-y-0', 'opacity-100');
     toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
   }, 3500);
+}
+
+// Handler memilih file gambar (membaca base64, kompresi, dan memperbarui preview)
+function handlePilihGambar(input) {
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    const reader = new FileReader();
+
+    reader.onload = function (e) {
+      const img = new Image();
+      img.onload = function () {
+        const maxDimension = 800; // Batasi ukuran maksimal gambar 800px
+        let width = img.width;
+        let height = img.height;
+
+        // Hitung proporsi rasio gambar
+        if (width > height) {
+          if (width > maxDimension) {
+            height = Math.round((height * maxDimension) / width);
+            width = maxDimension;
+          }
+        } else {
+          if (height > maxDimension) {
+            width = Math.round((width * maxDimension) / height);
+            height = maxDimension;
+          }
+        }
+
+        // Kompres menggunakan Canvas
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Ubah ke format JPEG terkompresi (kualitas 0.7) agar ukuran payload sangat ringan (~50KB)
+        selectedGambarBase64 = canvas.toDataURL('image/jpeg', 0.7);
+        selectedGambarNama = file.name.replace(/\.[^/.]+$/, "") + ".jpg"; // Ubah ekstensi jadi .jpg
+
+        // Perbarui UI Preview
+        const previewImg = document.getElementById('previewGambar');
+        const placeholderDiv = document.getElementById('placeholderGambar');
+        const btnHapus = document.getElementById('btnHapusGambar');
+
+        if (previewImg && placeholderDiv && btnHapus) {
+          previewImg.src = selectedGambarBase64;
+          previewImg.classList.remove('hidden');
+          placeholderDiv.classList.add('hidden');
+          btnHapus.classList.remove('hidden');
+        }
+
+        // Tandai perubahan & kalkulasi ulang payload
+        hitungSemua();
+      };
+      img.src = e.target.result;
+    };
+
+    reader.readAsDataURL(file);
+  }
+}
+
+// Menghapus gambar unit (mengosongkan state dan UI)
+function hapusGambar() {
+  selectedGambarBase64 = null;
+  selectedGambarNama = null;
+  currentGambarUrl = '';
+
+  const inputGambar = document.getElementById('inputGambar');
+  if (inputGambar) inputGambar.value = '';
+
+  // Perbarui UI Preview
+  const previewImg = document.getElementById('previewGambar');
+  const placeholderDiv = document.getElementById('placeholderGambar');
+  const btnHapus = document.getElementById('btnHapusGambar');
+
+  if (previewImg && placeholderDiv && btnHapus) {
+    previewImg.src = '';
+    previewImg.classList.add('hidden');
+    placeholderDiv.classList.remove('hidden');
+    btnHapus.classList.add('hidden');
+  }
+
+  // Tandai perubahan & kalkulasi ulang payload
+  hitungSemua();
 }
 
