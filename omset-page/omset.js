@@ -3,6 +3,8 @@ let chartInstance = null;
 
 // Mulai inisialisasi halaman
 document.addEventListener('DOMContentLoaded', () => {
+  konfigurasiCustomSelect('filterBulan');
+  konfigurasiCustomSelect('filterTahun');
   tarikDataKeuangan();
 });
 
@@ -22,6 +24,8 @@ function tarikDataKeuangan() {
         listStokMotor = data.filter((motor) => motor && motor.id && motor.nama);
         
         inisialisasiFilterTahun();
+        konfigurasiCustomSelect('filterBulan');
+        konfigurasiCustomSelect('filterTahun');
         prosesDataKeuangan();
       } else {
         console.error('Format data Sheets salah:', data);
