@@ -8,6 +8,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <script src="../../components/app-header.js"></script>
+  <script src="../../components/confirm-modal.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen">
   <!-- Global Loader -->
@@ -24,48 +25,48 @@
     max-width="max-w-4xl">
   </app-header>
 
-  <div class="max-w-4xl mx-auto px-4 md:px-8 pb-12">
+  <div class="max-w-4xl mx-auto px-3 sm:px-6 md:px-8 pb-12">
     <!-- Title Section -->
-    <div class="border-b border-gray-200 pb-4 mb-6">
-      <h1 class="text-2xl sm:text-3xl font-extrabold text-blue-600 flex items-center gap-2.5">
+    <div class="border-b border-gray-200 pb-3 sm:pb-4 mb-4 sm:mb-6">
+      <h1 class="text-xl sm:text-3xl font-extrabold text-blue-600 flex items-center gap-2 sm:gap-2.5">
         <i class="fa-solid fa-wallet text-emerald-600"></i> Catatan Saldo Modal
       </h1>
-      <p class="text-xs sm:text-sm text-gray-500 mt-1">Pencatatan rincian sumber dana modal dari seluruh pemodal</p>
+      <p class="text-[11px] sm:text-sm text-gray-500 mt-1">Pencatatan rincian sumber dana modal dari seluruh pemodal</p>
     </div>
 
     <!-- Ringkasan Total Saldo Card -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-      <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-4 sm:mb-6">
+      <div class="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm flex items-center gap-3 sm:gap-4">
+        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
           <i class="fa-solid fa-money-bill-wave"></i>
         </div>
         <div>
-          <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Total Saldo Modal</span>
-          <span id="totalSaldoTeks" class="text-2xl font-black text-gray-800">Rp 0</span>
+          <span class="block text-[11px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider">Total Saldo Modal</span>
+          <span id="totalSaldoTeks" class="text-lg sm:text-2xl font-black text-gray-800">Rp 0</span>
         </div>
       </div>
-      <div class="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm flex items-center gap-4">
-        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-xl shrink-0">
+      <div class="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-3.5 sm:p-5 shadow-sm flex items-center gap-3 sm:gap-4">
+        <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center text-lg sm:text-xl shrink-0">
           <i class="fa-solid fa-users"></i>
         </div>
         <div>
-          <span class="block text-xs font-bold text-gray-400 uppercase tracking-wider">Jumlah Sumber Dana</span>
-          <span id="totalSumberTeks" class="text-2xl font-black text-blue-600">0 Sumber</span>
+          <span class="block text-[11px] sm:text-xs font-bold text-gray-400 uppercase tracking-wider">Jumlah Sumber Dana</span>
+          <span id="totalSumberTeks" class="text-lg sm:text-2xl font-black text-blue-600">0 Sumber</span>
         </div>
       </div>
     </div>
 
     <!-- Table Card Pencatatan -->
-    <div class="bg-white border border-gray-200 rounded-2xl p-4 sm:p-6 shadow-sm">
-      <div class="flex items-center justify-between mb-4 pb-3 border-b border-gray-100">
+    <div class="bg-white border border-gray-200 rounded-xl sm:rounded-2xl p-3 sm:p-6 shadow-sm">
+      <div class="flex items-center justify-between mb-3 sm:mb-4 pb-2.5 sm:pb-3 border-b border-gray-100 gap-2">
         <div>
-          <h2 class="text-base sm:text-lg font-bold text-gray-800 flex items-center gap-2">
+          <h2 class="text-sm sm:text-lg font-bold text-gray-800 flex items-center gap-1.5 sm:gap-2">
             <i class="fa-solid fa-list-check text-blue-500"></i> Rincian Sumber Modal
           </h2>
-          <p class="text-xs text-gray-400 mt-0.5">Kelola nama pemodal dan nominal saldo dana masing-masing</p>
+          <p class="text-[11px] sm:text-xs text-gray-400 mt-0.5 hidden xs:block">Kelola nama pemodal dan nominal saldo dana</p>
         </div>
         <button onclick="tambahBaris()"
-          class="bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-xs sm:text-sm px-3.5 py-2 rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow-xs">
+          class="bg-blue-50 hover:bg-blue-100 text-blue-600 font-bold text-xs sm:text-sm px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-lg transition cursor-pointer flex items-center gap-1.5 shadow-xs shrink-0">
           <i class="fa-solid fa-plus text-xs"></i> Tambah Sumber
         </button>
       </div>
@@ -73,12 +74,12 @@
       <!-- Tabel -->
       <div class="overflow-x-auto">
         <table class="w-full text-left text-sm">
-          <thead class="bg-gray-50 text-xs font-bold text-gray-500 uppercase border-b border-gray-200">
+          <thead class="bg-gray-50 text-[11px] sm:text-xs font-bold text-gray-500 uppercase border-b border-gray-200">
             <tr>
-              <th class="py-3 px-3 w-12 text-center">No</th>
-              <th class="py-3 px-3">Keterangan</th>
-              <th class="py-3 px-3 w-48 sm:w-56 text-right">Jumlah (Rp)</th>
-              <th class="py-3 px-3 w-16 text-center">Aksi</th>
+              <th class="py-2.5 px-2 w-10 text-center hidden sm:table-cell">No</th>
+              <th class="py-2.5 px-1.5 sm:px-3">Keterangan</th>
+              <th class="py-2.5 px-1.5 sm:px-3 w-32 sm:w-56 text-right">Jumlah (Rp)</th>
+              <th class="py-2.5 px-1 sm:px-3 w-9 sm:w-14 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody id="tbodySaldoModal" class="divide-y divide-gray-100">
@@ -88,9 +89,9 @@
       </div>
 
       <!-- Action Footer -->
-      <div class="mt-6 flex justify-end items-center pt-4 border-t border-gray-100">
+      <div class="mt-4 sm:mt-6 flex justify-end items-center pt-3 sm:pt-4 border-t border-gray-100">
         <button onclick="simpanSaldoModal()" id="btnSimpan"
-          class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-2">
+          class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-2">
           <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan
         </button>
       </div>
