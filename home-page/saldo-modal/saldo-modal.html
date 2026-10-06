@@ -71,18 +71,18 @@
         </button>
       </div>
 
-      <!-- Tabel -->
-      <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm">
-          <thead class="bg-gray-50 text-[11px] sm:text-xs font-bold text-gray-500 uppercase border-b border-gray-200">
+      <!-- Tabel (Scroll samping saat mobile dengan font tetap proporsional) -->
+      <div class="overflow-x-auto border border-gray-200 rounded-xl">
+        <table class="w-full min-w-[480px] text-left border-collapse text-sm">
+          <thead class="bg-gray-50 text-xs font-bold text-gray-600 uppercase border-b border-gray-200">
             <tr>
-              <th class="py-2.5 px-2 w-10 text-center hidden sm:table-cell">No</th>
-              <th class="py-2.5 px-1.5 sm:px-3">Keterangan</th>
-              <th class="py-2.5 px-1.5 sm:px-3 w-32 sm:w-56 text-right">Jumlah (Rp)</th>
-              <th class="py-2.5 px-1 sm:px-3 w-9 sm:w-14 text-center">Aksi</th>
+              <th class="p-3 w-12 text-center hidden sm:table-cell">No</th>
+              <th class="p-3">Keterangan</th>
+              <th class="p-3 w-48 text-right">Jumlah (Rp)</th>
+              <th class="p-3 w-16 text-center">Aksi</th>
             </tr>
           </thead>
-          <tbody id="tbodySaldoModal" class="divide-y divide-gray-100">
+          <tbody id="tbodySaldoModal" class="divide-y divide-gray-100 bg-white">
             <!-- Diisi secara dinamis oleh JS -->
           </tbody>
         </table>
@@ -91,7 +91,7 @@
       <!-- Action Footer -->
       <div class="mt-4 sm:mt-6 flex justify-end items-center pt-3 sm:pt-4 border-t border-gray-100">
         <button onclick="simpanSaldoModal()" id="btnSimpan"
-          class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-2">
+          class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-2">
           <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan
         </button>
       </div>

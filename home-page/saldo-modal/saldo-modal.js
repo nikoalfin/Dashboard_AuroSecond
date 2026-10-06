@@ -68,21 +68,21 @@ function renderTabel() {
     tr.className = 'hover:bg-gray-50/70 transition';
 
     tr.innerHTML = `
-      <td class="py-2.5 px-2 text-center text-gray-400 font-bold text-xs hidden sm:table-cell">${idx + 1}</td>
-      <td class="py-1.5 sm:py-2.5 px-1 sm:px-3">
-        <input type="text" value="${sumber.keterangan || ''}" placeholder="Nama sumber"
-          class="w-full bg-white border border-gray-300 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:outline-blue-500 font-medium"
+      <td class="py-3 px-3 text-center text-gray-400 font-bold text-xs hidden sm:table-cell">${idx + 1}</td>
+      <td class="py-2.5 px-3">
+        <input type="text" value="${sumber.keterangan || ''}" placeholder="Nama sumber (cth: Nova, Ibuk)"
+          class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 font-medium"
           oninput="updateKeterangan(${idx}, this.value)" />
       </td>
-      <td class="py-1.5 sm:py-2.5 px-1 sm:px-3">
+      <td class="py-2.5 px-3">
         <input type="text" value="${Number(sumber.nominal || 0).toLocaleString('id-ID')}" placeholder="0"
-          class="w-full bg-white border border-gray-300 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm focus:outline-blue-500 font-bold text-right"
+          class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 font-bold text-right"
           oninput="updateNominal(${idx}, this)" />
       </td>
-      <td class="py-1.5 sm:py-2.5 px-1 sm:px-3 text-center">
+      <td class="py-2.5 px-3 text-center">
         <button onclick="hapusBaris(${idx})" title="Hapus sumber ini"
-          class="w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition cursor-pointer mx-auto">
-          <i class="fa-solid fa-trash-can text-xs sm:text-sm"></i>
+          class="w-8 h-8 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition cursor-pointer mx-auto">
+          <i class="fa-solid fa-trash-can text-sm"></i>
         </button>
       </td>
     `;
