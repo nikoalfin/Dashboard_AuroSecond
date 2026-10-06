@@ -68,21 +68,21 @@ function renderTabel() {
     tr.className = 'hover:bg-gray-50/70 transition';
 
     tr.innerHTML = `
-      <td class="py-3 px-3 text-center text-gray-400 font-bold text-xs hidden sm:table-cell">${idx + 1}</td>
-      <td class="py-2.5 px-3">
-        <input type="text" value="${sumber.keterangan || ''}" placeholder="Nama sumber (cth: Nova, Ibuk)"
-          class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 font-medium"
+      <td class="py-3 px-4 text-xs font-bold text-gray-400 text-center hidden sm:table-cell">${idx + 1}</td>
+      <td class="py-2 px-3">
+        <input type="text" value="${sumber.keterangan || ''}" placeholder="Keterangan sumber..."
+          class="w-full bg-white border border-gray-300 rounded px-2.5 py-1 text-sm focus:outline-none focus:border-blue-500"
           oninput="updateKeterangan(${idx}, this.value)" />
       </td>
-      <td class="py-2.5 px-3">
+      <td class="py-2 px-3">
         <input type="text" value="${Number(sumber.nominal || 0).toLocaleString('id-ID')}" placeholder="0"
-          class="w-full bg-white border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-blue-500 font-bold text-right"
+          class="w-full bg-white border border-gray-300 rounded px-2.5 py-1 text-sm text-left font-semibold text-gray-700"
           oninput="updateNominal(${idx}, this)" />
       </td>
-      <td class="py-2.5 px-3 text-center">
+      <td class="py-2 px-3 text-center">
         <button onclick="hapusBaris(${idx})" title="Hapus sumber ini"
-          class="w-8 h-8 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 flex items-center justify-center transition cursor-pointer mx-auto">
-          <i class="fa-solid fa-trash-can text-sm"></i>
+          class="bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 h-8 w-8 rounded-lg cursor-pointer flex items-center justify-center transition shadow-xs mx-auto">
+          <i class="fa-solid fa-trash-can text-xs"></i>
         </button>
       </td>
     `;
