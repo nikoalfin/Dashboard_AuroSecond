@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aurosecond Dashboard - Detail</title>
-    <link rel="icon" type="image/jpeg" href="../image/auro.jpeg" />
+    <link rel="icon" type="image/jpeg" href="../../image/auro.jpeg" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <!-- Flatpickr Library CDN -->
@@ -13,21 +13,27 @@
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
 
     <!-- Komponen Kustom -->
-    <link rel="stylesheet" href="../components/calendar.css" />
-    <script src="../components/confirm-modal.js"></script>
+    <link rel="stylesheet" href="../../components/calendar.css" />
+    <script src="../../components/confirm-modal.js"></script>
+    <script src="../../components/app-header.js"></script>
 </head>
 
-<body class="bg-gray-50 text-gray-800 min-h-screen p-4 md:p-8">
+<body class="bg-gray-50 text-gray-800 min-h-screen">
     <div id="globalLoader" class="fixed inset-0 bg-white/80 z-50 flex flex-col items-center justify-center gap-3">
         <div class="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full"></div>
         <p class="text-sm font-bold text-gray-600">Loading...</p>
     </div>
 
-    <div id="pageDetail" class="max-w-4xl mx-auto hidden">
-        <button onclick="kembaliKeBeranda()"
-            class="mb-4 text-sm font-bold text-blue-600 hover:text-blue-800 flex items-center gap-2 cursor-pointer">
-            <i class="fa-solid fa-arrow-left"></i> Kembali & Update Dashboard</button>
-        <div class="bg-white rounded-xl shadow-xl p-6 border border-gray-200">
+    <div id="pageDetail" class="hidden">
+        <!-- Komponen Header Navigasi Sticky -->
+        <app-header 
+            back-text="Kembali & Update Dashboard" 
+            on-back="kembaliKeBeranda()" 
+            max-width="max-w-4xl">
+        </app-header>
+
+        <div class="max-w-4xl mx-auto px-4 md:px-8 pb-8">
+            <div class="bg-white rounded-xl shadow-xl p-6 border border-gray-200">
             <div class="flex flex-col md:flex-row justify-between items-start md:items-center border-b border-gray-200 pb-4 mb-6 gap-4">
                 <div class="flex-1 w-full md:w-auto">
                     <input type="text" id="detailNamaMotorDisplay" 
@@ -37,13 +43,13 @@
                     <p class="text-sm text-gray-500 mt-1">Rincian modal awal dan operasional unit</p>
                 </div>
                 <div class="flex flex-wrap gap-3 w-full md:w-auto items-center">
-                    <div class="flex flex-col">
+                    <div class="flex flex-col w-full md:w-32">
                         <label class="text-[10px] text-gray-500 font-semibold uppercase mb-0.5">Status Unit</label>
                         <select id="detailStatusSelect"
                             class="bg-gray-100 border border-gray-300 rounded-lg px-2 py-1.5 text-xs font-bold focus:outline-none"
                             onchange="hitungSemua()">
-                            <option value="Ready">🚗 Ready</option>
-                            <option value="Terjual">✅ Terjual</option>
+                            <option value="Ready">Ready</option>
+                            <option value="Terjual">Terjual</option>
                         </select>
                     </div>
                     <div class="flex flex-col">
@@ -120,8 +126,8 @@
                 <div class="flex justify-between items-center mb-3">
                     <h2 class="text-base font-bold text-gray-700">Daftar Uang Keluar</h2>
                     <button onclick="tambahBarisPengeluaran('', '0')"
-                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-2 rounded-lg cursor-pointer">+
-                        Tambah Pengeluaran</button>
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-2 rounded-lg cursor-pointer flex items-center gap-1.5">
+                        <i class="fa-solid fa-plus text-xs"></i> Tambah Pengeluaran</button>
                 </div>
                 <div class="overflow-x-auto border border-gray-200 rounded-lg">
                     <table class="w-full min-w-[420px] text-left border-collapse">
@@ -180,6 +186,7 @@
             </div>
         </div>
     </div>
+</div>
 
     <!-- toast synchronization -->
     <div id="customToast"
@@ -195,9 +202,10 @@
         </div>
     </div>
 
-    <script src="../config.js"></script>
-    <script src="../shared.js"></script>
-    <script src="../components/custom-select.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../../config.js"></script>
+    <script src="../../shared.js"></script>
+    <script src="../../components/custom-select.js"></script>
     <script src="detail.js"></script>
 </body>
 

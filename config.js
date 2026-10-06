@@ -1,2 +1,12 @@
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzcpDq2KjQKCNgTVVV0ij_aa5sc6CwHQZUTnPultWNvbV2WsVflM9sOl2vZMEASjitRnQ/exec';
-const SPREADSHEET_URL = 'https://docs.google.com/spreadsheets/d/1zOfS6Sqou_q_o34X4XH2px83DoxRqEmvgOc-GMK0wa4/edit?hl=id&gid=0#gid=0';
+const SUPABASE_URL = 'https://rmmtoylsxqmjyjubrvra.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_ZysD20hVCcd4eZNM5eRgig_5NThJpAA';
+const TABLE_MOTOR = 'aurosecond-dashboard';
+const TABLE_SALDO_MODAL = 'saldo_modal';
+const BUCKET_NAME = 'motor-images';
+
+function getSupabase() {
+  if (!window._supabaseInstance && window.supabase) {
+    window._supabaseInstance = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+  }
+  return window._supabaseInstance;
+}

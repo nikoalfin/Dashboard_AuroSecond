@@ -3,80 +3,72 @@ let chartInstance = null;
 
 // Mulai inisialisasi halaman
 document.addEventListener('DOMContentLoaded', () => {
+  isiDropdownBulan('filterBulan', 'Semua Bulan (Breakdown Bulanan)');
+  isiDropdownTahun('filterTahun', [], 'Semua Tahun');
+
+  // Set default filter ke bulan dan tahun berjalan saat ini
+  const now = new Date();
+  const currentBulan = String(now.getMonth() + 1);
+  const currentTahun = String(now.getFullYear());
+
+  const elBulan = document.getElementById('filterBulan');
+  const elTahun = document.getElementById('filterTahun');
+  if (elBulan) elBulan.value = currentBulan;
+  if (elTahun) elTahun.value = currentTahun;
+
   konfigurasiCustomSelect('filterBulan');
   konfigurasiCustomSelect('filterTahun');
   tarikDataKeuangan();
 });
 
-// Ambil data dari cloud Sheets
-function tarikDataKeuangan() {
+// Ambil data dari database Supabase
+async function tarikDataKeuangan() {
   const loader = document.getElementById('globalLoader');
   if (loader) loader.classList.remove('hidden');
 
-  fetch(APPS_SCRIPT_URL, { method: 'GET', redirect: 'follow' })
-    .then((res) => {
-      if (!res.ok) throw new Error('Gagal memuat data dari server.');
-      return res.json();
-    })
-    .then((data) => {
-      if (Array.isArray(data)) {
-        // Filter baris kosong/invalid
-        listStokMotor = data.filter((motor) => motor && motor.id && motor.nama);
-        
-        inisialisasiFilterTahun();
-        konfigurasiCustomSelect('filterBulan');
-        konfigurasiCustomSelect('filterTahun');
-        prosesDataKeuangan();
-      } else {
-        console.error('Format data Sheets salah:', data);
-        alert('Format data dari server salah!');
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      alert('Gagal menyinkronkan data keuangan. Periksa koneksi internet Anda.');
-    })
-    .finally(() => {
-      if (loader) loader.classList.add('hidden');
-    });
-}
+  try {
+    const client = getSupabase();
+    if (!client) throw new Error('Supabase client belum diinisialisasi');
 
-// Inisialisasi dropdown Filter Tahun secara dinamis berdasarkan data
-function inisialisasiFilterTahun() {
-  const selectTahun = document.getElementById('filterTahun');
-  if (!selectTahun) return;
+    const { data, error } = await client
+      .from(TABLE_MOTOR)
+      .select('*')
+      .order('id', { ascending: false });
 
-  // Temukan semua tahun unik dari Tgl Jual (tglLaku) atau Tgl Beli (tglBeli) untuk motor Terjual
-  const tahunSet = new Set();
-  listStokMotor.forEach((motor) => {
-    const statusClean = String(motor.status || '').trim().toLowerCase();
-    if (statusClean === 'terjual') {
-      const tglStr = motor.tglLaku || motor.tglBeli;
-      if (tglStr && tglStr.includes('-')) {
-        const tahun = tglStr.split('-')[0];
-        tahunSet.add(tahun);
-      }
+    if (error) throw error;
+
+    if (Array.isArray(data)) {
+      listStokMotor = data
+        .filter((motor) => motor && motor.id && motor.nama)
+        .map(formatMotorFromDB);
+
+      // Refresh pilihan tahun dinamis berdasarkan data aktual
+      const elBulan = document.getElementById('filterBulan');
+      const elTahun = document.getElementById('filterTahun');
+      const now = new Date();
+      const currentBulan = String(now.getMonth() + 1);
+      const currentTahun = String(now.getFullYear());
+
+      const thnVal = elTahun && elTahun.value ? elTahun.value : currentTahun;
+      const blnVal = elBulan && elBulan.value ? elBulan.value : currentBulan;
+
+      isiDropdownTahun('filterTahun', listStokMotor, 'Semua Tahun');
+      if (elTahun) elTahun.value = thnVal;
+      if (elBulan) elBulan.value = blnVal;
+
+      konfigurasiCustomSelect('filterBulan');
+      konfigurasiCustomSelect('filterTahun');
+      prosesDataKeuangan();
+    } else {
+      console.error('Format data Supabase salah:', data);
+      alert('Format data dari server salah!');
     }
-  });
-
-  // Jika tidak ada data terjual sama sekali, tambahkan tahun saat ini
-  const tahunSekarang = new Date().getFullYear().toString();
-  if (tahunSet.size === 0) {
-    tahunSet.add(tahunSekarang);
+  } catch (err) {
+    console.error(err);
+    alert('Gagal menyinkronkan data keuangan dari Supabase.');
+  } finally {
+    if (loader) loader.classList.add('hidden');
   }
-
-  // Konversi set ke array dan urutkan descending (tahun terbaru di atas)
-  const tahunArray = Array.from(tahunSet).sort((a, b) => b - a);
-
-  // Buat HTML options
-  let optionsHtml = '<option value="">Semua Tahun</option>';
-  tahunArray.forEach((tahun) => {
-    // Set default ke tahun saat ini
-    const isSelected = tahun === tahunSekarang ? 'selected' : '';
-    optionsHtml += `<option value="${tahun}" ${isSelected}>Tahun ${tahun}</option>`;
-  });
-
-  selectTahun.innerHTML = optionsHtml;
 }
 
 // Pemrosesan utama perhitungan keuangan dan penggambaran chart

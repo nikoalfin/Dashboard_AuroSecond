@@ -22,6 +22,10 @@ window.addEventListener('DOMContentLoaded', () => {
     locale: "id"
   });
 
+  // Inisialisasi dropdown kustom status unit dari master data bersama
+  isiDropdownStatus('detailStatusSelect', '');
+  konfigurasiCustomSelect('detailStatusSelect');
+
   // Baca ID motor dari URL parameter
   const urlParams = new URLSearchParams(window.location.search);
   const id = urlParams.get('id');
@@ -30,7 +34,7 @@ window.addEventListener('DOMContentLoaded', () => {
     tarikDataDariSheet();
   } else {
     alert('ID Motor tidak ditemukan!');
-    window.location.href = '../home-page/index.html';
+    window.location.href = '../index.html';
   }
 
   // Intersep tombol browser "Back" agar melakukan auto-save jika ada perubahan
@@ -41,7 +45,7 @@ window.addEventListener('DOMContentLoaded', () => {
         event.preventDefault();
         syncDanKembali();
       } else {
-        window.location.href = '../home-page/index.html';
+        window.location.href = '../index.html';
       }
     });
     window.hasPopstateListener = true;
@@ -52,12 +56,11 @@ function kembaliKeBeranda() {
   if (window.apakahAdaPerubahan) {
     syncDanKembali();
   } else {
-    window.location.href = '../home-page/index.html';
+    window.location.href = '../index.html';
   }
 }
 
-function syncDanKembali() {
-  const endpointUrl = APPS_SCRIPT_URL;
+async function syncDanKembali() {
   hitungSemua();
 
   const loader = document.getElementById('globalLoader');
@@ -67,54 +70,53 @@ function syncDanKembali() {
     if (p) p.innerText = 'Menyimpan perubahan otomatis...';
   }
 
-  fetch(endpointUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payloadData),
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error('Network response was not ok');
-      return res.json();
-    })
-    .then((data) => {
-      if (data.status !== 'success') {
-        console.error('Apps Script error:', data.message);
-      }
-      window.location.href = '../home-page/index.html';
-    })
-    .catch((err) => {
-      console.error(err);
-      window.location.href = '../home-page/index.html';
-    });
+  try {
+    const client = getSupabase();
+    if (selectedGambarBase64 && selectedGambarNama) {
+      const urlBaru = await uploadGambarKeStorage(selectedGambarBase64, selectedGambarNama);
+      currentGambarUrl = urlBaru;
+      payloadData.gambar = urlBaru;
+    }
+    const dbPayload = formatMotorToDB(payloadData);
+    await client.from(TABLE_MOTOR).update(dbPayload).eq('id', idMotorAktif);
+  } catch (err) {
+    console.error('Error auto-sync popstate:', err);
+  }
+  window.location.href = '../index.html';
 }
 
-function tarikDataDariSheet() {
-  const endpoint = APPS_SCRIPT_URL;
+async function tarikDataDariSheet() {
   const loader = document.getElementById('globalLoader');
   if (loader) loader.classList.remove('hidden');
 
-  fetch(endpoint, { method: 'GET', redirect: 'follow' })
-    .then((res) => {
-      if (!res.ok) throw new Error('Network response was not ok');
-      return res.json();
-    })
-    .then((data) => {
-      if (Array.isArray(data)) {
-        listStokMotor = data.filter((motor) => motor && motor.id && motor.nama);
-        if (idMotorAktif) {
-          bukaDetailMotor(idMotorAktif);
-          const pageDetail = document.getElementById('pageDetail');
-          if (pageDetail) pageDetail.classList.remove('hidden');
-        }
-      }
-    })
-    .catch((err) => {
-      console.error(err);
-      tampilkanToast('⚠️ Gagal sinkronisasi data.');
-    })
-    .finally(() => {
-      if (loader) loader.classList.add('hidden');
-    });
+  try {
+    const client = getSupabase();
+    if (!client) throw new Error('Supabase client belum diinisialisasi');
+
+    const { data, error } = await client
+      .from(TABLE_MOTOR)
+      .select('*')
+      .eq('id', idMotorAktif)
+      .maybeSingle();
+
+    if (error) throw error;
+
+    if (data) {
+      const motor = formatMotorFromDB(data);
+      listStokMotor = [motor];
+      bukaDetailMotor(idMotorAktif);
+      const pageDetail = document.getElementById('pageDetail');
+      if (pageDetail) pageDetail.classList.remove('hidden');
+    } else {
+      alert('Data motor tidak ditemukan!');
+      window.location.href = '../index.html';
+    }
+  } catch (err) {
+    console.error(err);
+    tampilkanToast('Gagal sinkronisasi data dari Supabase.');
+  } finally {
+    if (loader) loader.classList.add('hidden');
+  }
 }
 
 function bukaDetailMotor(id) {
@@ -122,12 +124,13 @@ function bukaDetailMotor(id) {
   const motor = listStokMotor.find((x) => String(x.id) === String(id));
   if (!motor) {
     alert('Data motor tidak ditemukan!');
-    window.location.href = '../home-page/index.html';
+    window.location.href = '../index.html';
     return;
   }
 
   document.getElementById('detailNamaMotorDisplay').value = motor.nama;
   document.getElementById('detailStatusSelect').value = motor.status;
+  konfigurasiCustomSelect('detailStatusSelect');
 
   // Load status gambar unit motor
   selectedGambarBase64 = null;
@@ -386,8 +389,33 @@ function hitungSemua() {
   };
 }
 
-function kirimDataKeSheet() {
-  const endpointUrl = APPS_SCRIPT_URL;
+async function uploadGambarKeStorage(base64Data, namaFile) {
+  if (!base64Data) return currentGambarUrl;
+  try {
+    const client = getSupabase();
+    const res = await fetch(base64Data);
+    const blob = await res.blob();
+    const cleanFileName = `${Date.now()}_${namaFile.replace(/\s+/g, '_')}`;
+    const filePath = `units/${cleanFileName}`;
+
+    const { data, error } = await client.storage
+      .from(BUCKET_NAME)
+      .upload(filePath, blob, { contentType: 'image/jpeg', upsert: true });
+
+    if (error) {
+      console.warn('Storage upload note:', error);
+      return base64Data;
+    }
+
+    const { data: urlData } = client.storage.from(BUCKET_NAME).getPublicUrl(filePath);
+    return urlData.publicUrl;
+  } catch (e) {
+    console.warn('Fallback simpan foto:', e);
+    return base64Data;
+  }
+}
+
+async function kirimDataKeSheet() {
   hitungSemua();
 
   const btnSimpan = document.getElementById('btnSimpan');
@@ -398,38 +426,43 @@ function kirimDataKeSheet() {
     btnSimpan.disabled = true;
     btnSimpan.classList.add('opacity-60', 'cursor-not-allowed');
   }
-  if (btnText) btnText.innerText = 'Mengirim data ke Cloud Sheets...';
+  if (btnText) btnText.innerText = 'Menyimpan data...';
   if (btnLoader) btnLoader.classList.remove('hidden');
 
-  fetch(endpointUrl, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payloadData),
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error('Network response was not ok');
-      return res.json();
-    })
-    .then((data) => {
-      if (data.status === 'success') {
-        tampilkanToast(`Sukses sinkron! Data unit ${payloadData.nama} berhasil diamankan ke cloud.`);
-        tarikDataDariSheet();
-      } else {
-        throw new Error(data.message || 'Gagal menyimpan.');
-      }
-    })
-    .catch((err) => {
-      tampilkanToast('❌ Gagal sinkron cloud: ' + err.message);
-      console.error(err);
-    })
-    .finally(() => {
-      if (btnSimpan) {
-        btnSimpan.disabled = false;
-        btnSimpan.classList.remove('opacity-60', 'cursor-not-allowed');
-      }
-      if (btnText) btnText.innerText = 'Sinkronisasikan Data';
-      if (btnLoader) btnLoader.classList.add('hidden');
-    });
+  try {
+    const client = getSupabase();
+    if (!client) throw new Error('Supabase client belum diinisialisasi');
+
+    if (selectedGambarBase64 && selectedGambarNama) {
+      const urlBaru = await uploadGambarKeStorage(selectedGambarBase64, selectedGambarNama);
+      currentGambarUrl = urlBaru;
+      payloadData.gambar = urlBaru;
+      selectedGambarBase64 = null;
+      selectedGambarNama = null;
+    }
+
+    const dbPayload = formatMotorToDB(payloadData);
+    const { error } = await client
+      .from(TABLE_MOTOR)
+      .update(dbPayload)
+      .eq('id', idMotorAktif);
+
+    if (error) throw error;
+
+    window.apakahAdaPerubahan = false;
+    tampilkanToast(`Sukses sinkron! Data unit ${payloadData.nama} berhasil diamankan.`);
+    tarikDataDariSheet();
+  } catch (err) {
+    tampilkanToast('Gagal sinkron database: ' + err.message);
+    console.error(err);
+  } finally {
+    if (btnSimpan) {
+      btnSimpan.disabled = false;
+      btnSimpan.classList.remove('opacity-60', 'cursor-not-allowed');
+    }
+    if (btnText) btnText.innerText = 'Sinkronisasikan Data';
+    if (btnLoader) btnLoader.classList.add('hidden');
+  }
 }
 
 async function hapusMotorDariSheet() {
@@ -439,7 +472,6 @@ async function hapusMotorDariSheet() {
   );
 
   if (yakinHapus) {
-    const endpointUrl = APPS_SCRIPT_URL;
     const loader = document.getElementById('globalLoader');
     if (loader) {
       loader.classList.remove('hidden');
@@ -449,30 +481,23 @@ async function hapusMotorDariSheet() {
 
     window.apakahAdaPerubahan = false;
 
-    fetch(endpointUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify({
-        id: idMotorAktif,
-        action: 'delete'
-      }),
-    })
-      .then((res) => {
-        if (!res.ok) throw new Error('Network response was not ok');
-        return res.json();
-      })
-      .then((data) => {
-        if (data.status === 'success') {
-          window.location.href = '../home-page/index.html';
-        } else {
-          throw new Error(data.message || 'Gagal menghapus.');
-        }
-      })
-      .catch((err) => {
-        alert('Gagal menghapus motor dari database: ' + err.message);
-        console.error(err);
-        if (loader) loader.classList.add('hidden');
-      });
+    try {
+      const client = getSupabase();
+      if (!client) throw new Error('Supabase client belum diinisialisasi');
+
+      const { error } = await client
+        .from(TABLE_MOTOR)
+        .delete()
+        .eq('id', idMotorAktif);
+
+      if (error) throw error;
+
+      window.location.href = '../index.html';
+    } catch (err) {
+      alert('Gagal menghapus motor dari database: ' + err.message);
+      console.error(err);
+      if (loader) loader.classList.add('hidden');
+    }
   }
 }
 

@@ -2,7 +2,10 @@ let listStokMotor = [];
 let payloadData = {};
 
 window.addEventListener('DOMContentLoaded', () => {
-  inisialisasiFilterTahun();
+  // Isi opsi dropdown filter dari data master bersama
+  isiDropdownBulan('filterBulan');
+  isiDropdownTahun('filterTahun', []);
+  isiDropdownStatus('filterStatus');
 
   // Inisialisasi dropdown kustom beranda
   konfigurasiCustomSelect('filterBulan');
@@ -20,21 +23,11 @@ window.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Tarik data awal dari Sheet
+  // Tarik data awal dari database Supabase
   tarikDataDariSheet();
 });
 
-function inisialisasiFilterTahun() {
-  const selectTahun = document.getElementById('filterTahun');
-  if (!selectTahun) return;
 
-  const tahunSekarang = new Date().getFullYear();
-  let optionsHtml = '<option value="">Semua Tahun</option>';
-  for (let t = tahunSekarang; t >= 2024; t--) {
-    optionsHtml += `<option value="${t}">${t}</option>`;
-  }
-  selectTahun.innerHTML = optionsHtml;
-}
 
 function toggleFilter() {
   const container = document.getElementById('containerFilter');
@@ -46,45 +39,50 @@ function toggleFilter() {
   }
 }
 
-function tarikDataDariSheet() {
-  const endpoint = APPS_SCRIPT_URL;
+async function tarikDataDariSheet() {
   const loader = document.getElementById('globalLoader');
   if (loader) loader.classList.remove('hidden');
 
-  fetch(endpoint, { method: 'GET', redirect: 'follow' })
-    .then((res) => {
-      if (!res.ok) throw new Error('Network response was not ok');
-      return res.json();
-    })
-    .then((data) => {
-      if (Array.isArray(data)) {
-        // Filter baris kosong/invalid
-        listStokMotor = data.filter((motor) => motor && motor.id && motor.nama);
+  try {
+    const client = getSupabase();
+    if (!client) throw new Error('Supabase client belum diinisialisasi');
 
-        // Sort berdasarkan tanggal beli - terbaru ditaruh paling atas
-        listStokMotor.sort((a, b) => {
-          const dateA = new Date(a.tglBeli || '1970-01-01');
-          const dateB = new Date(b.tglBeli || '1970-01-01');
-          return dateB - dateA;
-        });
+    const { data, error } = await client
+      .from(TABLE_MOTOR)
+      .select('*')
+      .order('id', { ascending: false });
 
-        renderBeranda();
-        
-        const berandaPage = document.getElementById('pageBeranda');
-        if (berandaPage) {
-          berandaPage.classList.remove('hidden'); // Membuka kunci layar
-        }
-      } else {
-        console.error('Format data dari Sheets salah:', data);
+    if (error) throw error;
+
+    if (Array.isArray(data)) {
+      listStokMotor = data
+        .filter((motor) => motor && motor.id && motor.nama)
+        .map(formatMotorFromDB);
+
+      // Sort berdasarkan tanggal beli - terbaru ditaruh paling atas
+      listStokMotor.sort((a, b) => {
+        const dateA = new Date(a.tglBeli || '1970-01-01');
+        const dateB = new Date(b.tglBeli || '1970-01-01');
+        return dateB - dateA;
+      });
+
+      // Refresh pilihan tahun sesuai data aktual dari database
+      isiDropdownTahun('filterTahun', listStokMotor);
+      konfigurasiCustomSelect('filterTahun');
+
+      renderBeranda();
+
+      const berandaPage = document.getElementById('pageBeranda');
+      if (berandaPage) {
+        berandaPage.classList.remove('hidden');
       }
-    })
-    .catch((err) => {
-      console.error(err);
-      tampilkanToast('⚠️ Gagal sinkronisasi otomatis cloud Sheets.');
-    })
-    .finally(() => {
-      if (loader) loader.classList.add('hidden');
-    });
+    }
+  } catch (err) {
+    console.error(err);
+    tampilkanToast('Gagal sinkronisasi data dari Supabase.');
+  } finally {
+    if (loader) loader.classList.add('hidden');
+  }
 }
 
 function renderBeranda() {
@@ -93,7 +91,6 @@ function renderBeranda() {
   grid.innerHTML = '';
 
   // AMBIL NILAI INPUTAN FILTER DARI UI HTML
-  const filterNama = document.getElementById('filterNamaMotor')?.value.toLowerCase() || '';
   const filterBulan = document.getElementById('filterBulan')?.value || '';
   const filterTahun = document.getElementById('filterTahun')?.value || '';
   const filterStatus = document.getElementById('filterStatus')?.value || '';
@@ -105,9 +102,6 @@ function renderBeranda() {
 
   listStokMotor.forEach((motor, index) => {
     // ⚡ PROSES FILTER DATA SECARA REALTIME
-
-    // 1. Filter Nama Motor
-    if (filterNama && !motor.nama.toLowerCase().includes(filterNama)) return;
 
     // 2. Filter Status Unit
     const statusClean = String(motor.status || '').trim().toLowerCase();
@@ -142,7 +136,7 @@ function renderBeranda() {
 
     card.addEventListener('click', () => {
       // Navigasi ke halaman detail dengan path relatif baru
-      window.location.href = `../detail-page/detail.html?id=${encodeURIComponent(motor.id)}`;
+      window.location.href = `detail-page/detail.html?id=${encodeURIComponent(motor.id)}`;
     });
 
     const imgHtml = motor.gambar
@@ -173,7 +167,9 @@ function renderBeranda() {
   if (renderedCount === 0) {
     grid.innerHTML = `
       <div class="col-span-full flex flex-col items-center justify-center py-12 px-4 text-center">
-        <div class="w-16 h-16 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center text-2xl shadow-inner mb-4">🔍</div>
+        <div class="w-16 h-16 bg-gray-50 border border-gray-100 rounded-2xl flex items-center justify-center text-gray-400 text-2xl shadow-inner mb-4">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
         <h3 class="text-base font-bold text-gray-700">Unit Tidak Ditemukan</h3>
         <p class="text-xs text-gray-400 mt-1 max-w-xs mx-auto">Tidak ada unit motor yang cocok dengan kriteria filter saat ini.</p>
       </div>
@@ -212,7 +208,7 @@ function tutupModalTambah() {
   if (modal) modal.classList.add('hidden');
 }
 
-function prosesTambahMotor() {
+async function prosesTambahMotor() {
   const nama = document.getElementById('modalInputNama').value;
   const tglBeli = document.getElementById('modalInputTglBeli').value;
   if (!nama) {
@@ -235,33 +231,23 @@ function prosesTambahMotor() {
     gambar: '',
   };
 
-  payloadData = newObj;
-
   const btnSimpan = document.querySelector('#modalTambah button.bg-blue-600');
   const oldText = btnSimpan.innerText;
   btnSimpan.innerText = 'Menyimpan...';
   btnSimpan.disabled = true;
 
-  fetch(APPS_SCRIPT_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-    body: JSON.stringify(payloadData),
-  })
-    .then((res) => {
-      if (!res.ok) throw new Error('Network response was not ok');
-      return res.json();
-    })
-    .then((data) => {
-      if (data.status === 'success') {
-        // Arahkan ke subfolder detail-page
-        window.location.href = `../detail-page/detail.html?id=${newId}`;
-      } else {
-        throw new Error(data.message || 'Gagal menyimpan.');
-      }
-    })
-    .catch((err) => {
-      alert('Gagal menambahkan motor ke cloud: ' + err.message);
-      btnSimpan.innerText = oldText;
-      btnSimpan.disabled = false;
-    });
+  try {
+    const client = getSupabase();
+    if (!client) throw new Error('Supabase client belum diinisialisasi');
+
+    const dbPayload = formatMotorToDB(newObj);
+    const { error } = await client.from(TABLE_MOTOR).insert([dbPayload]);
+    if (error) throw error;
+
+    window.location.href = `detail-page/detail.html?id=${newId}`;
+  } catch (err) {
+    alert('Gagal menambahkan motor ke database: ' + err.message);
+    btnSimpan.innerText = oldText;
+    btnSimpan.disabled = false;
+  }
 }

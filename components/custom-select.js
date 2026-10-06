@@ -42,11 +42,15 @@ function konfigurasiCustomSelect(selectId) {
   const selectedOption = nativeSelect.options[nativeSelect.selectedIndex] || nativeSelect.options[0];
   const selectedText = selectedOption ? selectedOption.text : 'Pilih...';
 
+  const isCompact = nativeSelect.classList.contains('text-xs') || nativeSelect.classList.contains('py-1.5');
+  const btnPadding = isCompact ? 'px-2.5 py-1.5 text-xs font-bold' : 'p-2.5 text-sm font-medium';
+  const itemPadding = isCompact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2.5 text-sm';
+
   // Render trigger button dan panel list
   customContainer.innerHTML = `
-    <button type="button" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none flex justify-between items-center font-medium cursor-pointer text-gray-800 shadow-sm hover:border-gray-400 transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+    <button type="button" class="w-full bg-white border border-gray-300 rounded-lg ${btnPadding} focus:outline-none flex justify-between items-center cursor-pointer text-gray-800 shadow-sm hover:border-gray-400 transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
       <span class="custom-select-label">${selectedText}</span>
-      <svg class="w-4 h-4 text-gray-500 transition-transform duration-200 custom-select-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="${isCompact ? 'w-3.5 h-3.5' : 'w-4 h-4'} text-gray-500 transition-transform duration-200 custom-select-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
       </svg>
     </button>
@@ -63,7 +67,7 @@ function konfigurasiCustomSelect(selectId) {
     const isSelected = option.value === nativeSelect.value;
     const item = document.createElement('button');
     item.type = 'button';
-    item.className = `w-full text-left px-4 py-2.5 text-sm transition-all cursor-pointer flex justify-between items-center ${isSelected
+    item.className = `w-full text-left ${itemPadding} transition-all cursor-pointer flex justify-between items-center ${isSelected
       ? 'bg-blue-50 text-blue-600 font-bold'
       : 'hover:bg-gray-50 text-gray-700 hover:text-gray-900 font-medium'
       }`;
