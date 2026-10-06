@@ -6,6 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Aurosecond Dashboard - Detail</title>
     <link rel="icon" type="image/jpeg" href="../../image/auro.jpeg" />
+    <link rel="manifest" href="../../manifest.json" />
+    <meta name="theme-color" content="#2563eb" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Auro Second" />
+    <link rel="apple-touch-icon" href="../../image/auro.jpeg" />
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <!-- Flatpickr Library CDN -->
@@ -69,7 +75,7 @@
             <div class="mb-6 bg-gray-50 p-4 rounded-xl border border-gray-200 flex flex-col md:flex-row gap-4 items-center">
                 <div class="w-full md:w-48 aspect-[4/3] bg-gray-200 rounded-lg border-2 border-dashed border-gray-300 flex flex-col items-center justify-center relative overflow-hidden cursor-pointer hover:bg-gray-300 transition group" id="btnPilihGambar" onclick="document.getElementById('inputGambar').click()">
                     <!-- Preview Image -->
-                    <img id="previewGambar" class="w-full h-full object-cover hidden" />
+                    <img id="previewGambar" class="w-full h-full object-cover hidden" referrerpolicy="no-referrer" />
                     <!-- Upload Placeholder Icon -->
                     <div id="placeholderGambar" class="flex flex-col items-center justify-center text-gray-400 group-hover:text-blue-500 transition">
                         <i class="fa-solid fa-camera text-2xl mb-1"></i>

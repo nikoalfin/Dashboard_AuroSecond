@@ -151,3 +151,11 @@ function isiDropdownTahun(selectId, dataList = [], defaultLabel = 'Semua Tahun')
   if (valSaatIni) el.value = valSaatIni;
 }
 
+// REGISTRASI PWA SERVICE WORKER OTOMATIS
+if ('serviceWorker' in navigator && window.location.protocol.startsWith('http')) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch((err) => {
+      console.warn('PWA ServiceWorker note:', err);
+    });
+  });
+}

@@ -1,0 +1,25 @@
+{
+  "name": "Auro Second Dashboard",
+  "short_name": "Auro Second",
+  "description": "Dashboard Operasional & Saldo Modal Auro Second",
+  "start_url": "/home-page/index.html",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f9fafb",
+  "theme_color": "#2563eb",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/image/auro.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/image/auro.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}
