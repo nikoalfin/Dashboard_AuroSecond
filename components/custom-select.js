@@ -38,6 +38,8 @@ function konfigurasiCustomSelect(selectId) {
     nativeSelect.parentNode.insertBefore(customContainer, nativeSelect.nextSibling);
   }
 
+  const isDisabled = Boolean(nativeSelect.disabled);
+
   // Ambil teks opsi terpilih saat ini
   const selectedOption = nativeSelect.options[nativeSelect.selectedIndex] || nativeSelect.options[0];
   const selectedText = selectedOption ? selectedOption.text : 'Pilih...';
@@ -46,17 +48,23 @@ function konfigurasiCustomSelect(selectId) {
   const btnPadding = isCompact ? 'px-2.5 py-1.5 text-xs font-bold' : 'p-2.5 text-sm font-medium';
   const itemPadding = isCompact ? 'px-3 py-1.5 text-xs' : 'px-4 py-2.5 text-sm';
 
+  const btnClass = isDisabled
+    ? `w-full bg-gray-100 border border-gray-200 rounded-lg ${btnPadding} flex justify-between items-center cursor-not-allowed text-gray-400 select-none`
+    : `w-full bg-white border border-gray-300 rounded-lg ${btnPadding} focus:outline-none flex justify-between items-center cursor-pointer text-gray-800 shadow-sm hover:border-gray-400 transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500`;
+
   // Render trigger button dan panel list
   customContainer.innerHTML = `
-    <button type="button" class="w-full bg-white border border-gray-300 rounded-lg ${btnPadding} focus:outline-none flex justify-between items-center cursor-pointer text-gray-800 shadow-sm hover:border-gray-400 transition-all focus:border-blue-500 focus:ring-1 focus:ring-blue-500">
+    <button type="button" ${isDisabled ? 'disabled' : ''} class="${btnClass}">
       <span class="custom-select-label">${selectedText}</span>
-      <svg class="${isCompact ? 'w-3.5 h-3.5' : 'w-4 h-4'} text-gray-500 transition-transform duration-200 custom-select-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="${isCompact ? 'w-3.5 h-3.5' : 'w-4 h-4'} text-gray-400 transition-transform duration-200 custom-select-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
       </svg>
     </button>
     <div class="absolute z-40 mt-1 w-full bg-white border border-gray-200 rounded-xl shadow-xl hidden py-1 max-h-60 overflow-y-auto transition-all custom-select-panel">
     </div>
   `;
+
+  if (isDisabled) return;
 
   const button = customContainer.querySelector('button');
   const panel = customContainer.querySelector('.custom-select-panel');

@@ -17,21 +17,23 @@
   <script src="../../components/confirm-modal.js"></script>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen">
+
   <!-- Global Loader -->
   <div id="globalLoader" class="fixed inset-0 bg-white/80 z-50 flex flex-col items-center justify-center gap-3">
     <div class="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full"></div>
     <p class="text-sm font-bold text-gray-600">Memuat data saldo modal...</p>
   </div>
 
-  <!-- Reusable Sticky Header Component -->
-  <app-header 
-    back-text="Kembali ke dashboard" 
-    back-url="../index.html" 
-    title="Pencatatan Saldo Modal" 
+  <!-- Sticky Header -->
+  <app-header
+    back-text="Kembali ke dashboard"
+    back-url="../index.html"
+    title="Pencatatan Saldo Modal"
     max-width="max-w-4xl">
   </app-header>
 
   <div class="max-w-4xl mx-auto px-3 sm:px-6 md:px-8 pb-12">
+
     <!-- Title Section -->
     <div class="border-b border-gray-200 pb-3 sm:pb-4 mb-4 sm:mb-6">
       <h1 class="text-xl sm:text-3xl font-extrabold text-blue-600 flex items-center gap-2 sm:gap-2.5">
@@ -62,48 +64,135 @@
       </div>
     </div>
 
-    <!-- Table Card Pencatatan -->
-    <div class="bg-white rounded-xl shadow-xl p-6 border border-gray-200">
+    <!-- ===================== CARD 1: MODAL NIKO GROUP ===================== -->
+    <div class="bg-white rounded-xl shadow-xl p-5 sm:p-6 border border-blue-100 mb-4 sm:mb-5">
       <div class="flex justify-between items-center mb-3">
-        <h2 class="text-base font-bold text-gray-700">Rincian Sumber Modal</h2>
-        <button onclick="tambahBaris()"
-          class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-2 rounded-lg cursor-pointer flex items-center gap-1.5">
-          <i class="fa-solid fa-plus text-xs"></i> Tambah Sumber
-        </button>
+        <div>
+          <h2 class="text-base font-bold text-blue-700 flex items-center gap-2">
+            <span class="inline-flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded-full text-xs font-black">1</span>
+            Modal Niko Group
+          </h2>
+          <p class="text-xs text-gray-400 mt-0.5">Sumber modal: Nova, Niko, Ibuk</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg">
+            Total: <span id="totalCard1">Rp 0</span>
+          </span>
+          <button onclick="tambahBaris('niko')"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-2 rounded-lg cursor-pointer flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-plus text-xs"></i> Tambah
+          </button>
+        </div>
       </div>
-
-      <!-- Tabel (Sama persis dengan tabel detail) -->
       <div class="overflow-x-auto border border-gray-200 rounded-lg">
-        <table class="w-full min-w-[420px] text-left border-collapse">
+        <table class="w-full min-w-[500px] text-left border-collapse">
           <thead>
-            <tr class="bg-gray-100 text-gray-600 text-xs uppercase font-bold border-b border-gray-200">
-              <th class="p-3 w-12 text-center hidden sm:table-cell">No</th>
+            <tr class="bg-blue-50 text-blue-700 text-xs uppercase font-bold border-b border-blue-100">
+              <th class="p-3 w-10 text-center hidden sm:table-cell">No</th>
               <th class="p-3">Keterangan</th>
-              <th class="p-3 w-32 sm:w-40 text-left">Jumlah (Rp)</th>
-              <th class="p-3 w-16 text-center">Aksi</th>
+              <th class="p-3 w-36 sm:w-44 text-left">Jumlah (Rp)</th>
+              <th class="p-3 w-28 text-center">Status</th>
+              <th class="p-3 w-14 text-center">Aksi</th>
             </tr>
           </thead>
-          <tbody id="tbodySaldoModal" class="divide-y divide-gray-100 bg-white">
-            <!-- Diisi secara dinamis oleh JS -->
-          </tbody>
+          <tbody id="tbodyCard1" class="divide-y divide-gray-100 bg-white"></tbody>
         </table>
       </div>
-
-      <!-- Action Footer -->
-      <div class="mt-4 sm:mt-6 flex justify-end items-center pt-3 sm:pt-4 border-t border-gray-100">
-        <button onclick="simpanSaldoModal()" id="btnSimpan"
-          class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-6 py-2.5 rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-2">
-          <i class="fa-solid fa-floppy-disk"></i> Simpan Perubahan
+      <div class="mt-4 flex justify-end pt-3 border-t border-gray-100">
+        <button onclick="simpanGroup('niko')"
+          class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow transition cursor-pointer flex items-center gap-2">
+          <i class="fa-solid fa-floppy-disk"></i> Simpan Card 1
         </button>
       </div>
     </div>
+
+    <!-- ===================== CARD 2: MODAL FIKRI GROUP ===================== -->
+    <div class="bg-white rounded-xl shadow-xl p-5 sm:p-6 border border-sky-100 mb-4 sm:mb-5">
+      <div class="flex justify-between items-center mb-3">
+        <div>
+          <h2 class="text-base font-bold text-sky-700 flex items-center gap-2">
+            <span class="inline-flex items-center justify-center w-6 h-6 bg-sky-600 text-white rounded-full text-xs font-black">2</span>
+            Modal Fikri Group
+          </h2>
+          <p class="text-xs text-gray-400 mt-0.5">Sumber modal: Fikri 1, Fikri 2, Fikri 3</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2.5 py-1 rounded-lg">
+            Total: <span id="totalCard2">Rp 0</span>
+          </span>
+          <button onclick="tambahBaris('fikri')"
+            class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-3 py-2 rounded-lg cursor-pointer flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-plus text-xs"></i> Tambah
+          </button>
+        </div>
+      </div>
+      <div class="overflow-x-auto border border-gray-200 rounded-lg">
+        <table class="w-full min-w-[500px] text-left border-collapse">
+          <thead>
+            <tr class="bg-sky-50 text-sky-700 text-xs uppercase font-bold border-b border-sky-100">
+              <th class="p-3 w-10 text-center hidden sm:table-cell">No</th>
+              <th class="p-3">Keterangan</th>
+              <th class="p-3 w-36 sm:w-44 text-left">Jumlah (Rp)</th>
+              <th class="p-3 w-28 text-center">Status</th>
+              <th class="p-3 w-14 text-center">Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tbodyCard2" class="divide-y divide-gray-100 bg-white"></tbody>
+        </table>
+      </div>
+      <div class="mt-4 flex justify-end pt-3 border-t border-gray-100">
+        <button onclick="simpanGroup('fikri')"
+          class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow transition cursor-pointer flex items-center gap-2">
+          <i class="fa-solid fa-floppy-disk"></i> Simpan Card 2
+        </button>
+      </div>
+    </div>
+
+    <!-- ===================== CARD 3: SISA TOTAL DANA ===================== -->
+    <div class="bg-white rounded-xl shadow-xl p-5 sm:p-6 border border-emerald-200">
+      <h2 class="text-base font-bold text-emerald-700 flex items-center gap-2 mb-4">
+        <span class="inline-flex items-center justify-center w-6 h-6 bg-emerald-600 text-white rounded-full text-xs font-black">3</span>
+        Ringkasan Sisa Total Dana
+      </h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
+        <!-- Modal Tersedia -->
+        <div class="bg-emerald-50 border border-emerald-200 rounded-xl p-4 text-center">
+          <p class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider mb-1">Modal Tersedia</p>
+          <p class="text-xs text-gray-400 mb-2">Belum dipakai sama sekali</p>
+          <p id="card3Tersedia" class="text-xl font-black text-emerald-700">Rp 0</p>
+          <p id="card3TersediaCount" class="text-[10px] text-emerald-500 mt-1">0 sumber</p>
+        </div>
+        <!-- Sisa Modal Kas -->
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-4 text-center">
+          <p class="text-[11px] font-bold text-blue-600 uppercase tracking-wider mb-1">Sisa Modal Kas</p>
+          <p class="text-xs text-gray-400 mb-2">Sisa dari modal yg sudah terpakai</p>
+          <p id="card3SisaKas" class="text-xl font-black text-blue-700">Rp 0</p>
+          <p id="card3SisaKasCount" class="text-[10px] text-blue-500 mt-1">dari 0 motor</p>
+        </div>
+        <!-- Total Dana Aman -->
+        <div class="bg-emerald-600 border border-emerald-500 rounded-xl p-4 text-center shadow-sm">
+          <p class="text-[11px] font-bold text-emerald-100 uppercase tracking-wider mb-1">Total Dana Aman</p>
+          <p class="text-xs text-emerald-100/90 mb-2">Tersedia + Sisa Modal Kas</p>
+          <p id="card3Total" class="text-xl font-black text-white">Rp 0</p>
+          <p class="text-[10px] text-emerald-100/80 mt-1">estimasi dana yang masih ada</p>
+        </div>
+      </div>
+      <!-- Progress bar visual -->
+      <div class="bg-gray-100 rounded-full h-2 overflow-hidden">
+        <div id="card3ProgressBar" class="h-full bg-emerald-500 rounded-full transition-all duration-500" style="width: 0%"></div>
+      </div>
+      <div class="flex justify-between mt-1">
+        <span class="text-[10px] text-gray-400">Dari total modal keseluruhan: <span id="card3TotalModal" class="font-bold text-gray-600">Rp 0</span></span>
+      </div>
+    </div>
+
   </div>
 
   <!-- Toast Synchronization -->
   <div id="customToast"
     class="fixed bottom-5 right-5 z-50 transform translate-y-20 opacity-0 pointer-events-none transition-all duration-300 ease-out flex items-center gap-3 bg-slate-900 border border-slate-800 text-white px-5 py-3.5 rounded-xl shadow-2xl max-w-sm">
     <div class="flex items-center justify-center h-8 w-8 bg-emerald-500 text-white rounded-full flex-shrink-0">
-      <svg class="h-4.5 w-4.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7" />
       </svg>
     </div>

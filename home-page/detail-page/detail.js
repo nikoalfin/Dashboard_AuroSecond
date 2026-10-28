@@ -6,21 +6,16 @@ let currentGambarUrl = '';
 let payloadData = {};
 window.apakahAdaPerubahan = false;
 
+// State saldo modal untuk dropdown
+let listSaldoModalNiko = [];  // group = 'niko'
+let listSaldoModalFikri = []; // group = 'fikri'
+let prevSaldoModalNikoId = null;  // ID saldo modal yang sebelumnya terpakai (untuk reset)
+let prevSaldoModalFikriId = null;
+
 window.addEventListener('DOMContentLoaded', () => {
   // Inisialisasi Flatpickr pada input detail
-  flatpickr("#tglBeli", {
-    dateFormat: "Y-m-d",
-    altInput: true,
-    altFormat: "d F Y",
-    locale: "id"
-  });
-
-  flatpickr("#tglLaku", {
-    dateFormat: "Y-m-d",
-    altInput: true,
-    altFormat: "d F Y",
-    locale: "id"
-  });
+  flatpickr("#tglBeli", FLATPICKR_CONFIG);
+  flatpickr("#tglLaku", FLATPICKR_CONFIG);
 
   // Inisialisasi dropdown kustom status unit dari master data bersama
   isiDropdownStatus('detailStatusSelect', '');
@@ -31,61 +26,23 @@ window.addEventListener('DOMContentLoaded', () => {
   const id = urlParams.get('id');
   if (id) {
     idMotorAktif = id;
-    tarikDataDariSheet();
+    // Ambil data saldo modal + data motor secara bersamaan
+    inisialisasiHalaman();
   } else {
     alert('ID Motor tidak ditemukan!');
     window.location.href = '../index.html';
   }
-
-  // Intersep tombol browser "Back" agar melakukan auto-save jika ada perubahan
-  if (!window.hasPopstateListener) {
-    window.history.pushState({ page: 'detail' }, '');
-    window.addEventListener('popstate', function (event) {
-      if (window.apakahAdaPerubahan) {
-        event.preventDefault();
-        syncDanKembali();
-      } else {
-        window.location.href = '../index.html';
-      }
-    });
-    window.hasPopstateListener = true;
-  }
 });
 
 function kembaliKeBeranda() {
-  if (window.apakahAdaPerubahan) {
-    syncDanKembali();
-  } else {
-    window.location.href = '../index.html';
-  }
-}
-
-async function syncDanKembali() {
-  hitungSemua();
-
-  const loader = document.getElementById('globalLoader');
-  if (loader) {
-    loader.classList.remove('hidden');
-    const p = loader.querySelector('p');
-    if (p) p.innerText = 'Menyimpan perubahan otomatis...';
-  }
-
-  try {
-    const client = getSupabase();
-    if (selectedGambarBase64 && selectedGambarNama) {
-      const urlBaru = await uploadGambarKeStorage(selectedGambarBase64, selectedGambarNama);
-      currentGambarUrl = urlBaru;
-      payloadData.gambar = urlBaru;
-    }
-    const dbPayload = formatMotorToDB(payloadData);
-    await client.from(TABLE_MOTOR).update(dbPayload).eq('id', idMotorAktif);
-  } catch (err) {
-    console.error('Error auto-sync popstate:', err);
-  }
+  // Kembali murni hanya untuk navigasi tanpa menyimpan data otomatis
   window.location.href = '../index.html';
 }
 
-async function tarikDataDariSheet() {
+// ============================================================
+// INISIALISASI HALAMAN: ambil saldo modal + data motor sekaligus
+// ============================================================
+async function inisialisasiHalaman() {
   const loader = document.getElementById('globalLoader');
   if (loader) loader.classList.remove('hidden');
 
@@ -93,24 +50,110 @@ async function tarikDataDariSheet() {
     const client = getSupabase();
     if (!client) throw new Error('Supabase client belum diinisialisasi');
 
-    const { data, error } = await client
-      .from(TABLE_MOTOR)
-      .select('*')
-      .eq('id', idMotorAktif)
-      .maybeSingle();
+    // Ambil saldo modal dan seluruh data motor secara paralel
+    const [{ data: dataSaldo, error: errSaldo }, { data: allMotors, error: errMotor }] = await Promise.all([
+      client.from(TABLE_SALDO_MODAL).select('*').order('id', { ascending: true }),
+      client.from(TABLE_MOTOR).select('*')
+    ]);
 
-    if (error) throw error;
+    if (errSaldo) throw errSaldo;
+    if (errMotor) throw errMotor;
 
-    if (data) {
-      const motor = formatMotorFromDB(data);
-      listStokMotor = [motor];
-      bukaDetailMotor(idMotorAktif);
-      const pageDetail = document.getElementById('pageDetail');
-      if (pageDetail) pageDetail.classList.remove('hidden');
-    } else {
+    // Cari data motor aktif saat ini
+    const dataMotor = (allMotors || []).find((m) => String(m.id) === String(idMotorAktif));
+    if (!dataMotor) {
       alert('Data motor tidak ditemukan!');
       window.location.href = '../index.html';
+      return;
     }
+
+    // Koreksi data historis jika motor Terjual sempat terkena imbas update master saldo modal
+    // (Misal: Ibuk naik ke 13jt padahal transaksi motor saat terjual adalah 12jt)
+    if (dataMotor.status === 'Terjual' && Number(dataMotor.modal_niko) === 13000000 && Number(dataMotor.modal_fikri) === 8800000) {
+      dataMotor.modal_niko = 12000000;
+      client.from(TABLE_MOTOR).update({ modal_niko: 12000000 }).eq('id', dataMotor.id).then();
+    }
+
+    // Simpan data saldo modal ke state
+    const semuaSaldo = (dataSaldo || []).map((row) => ({
+      id: row.id,
+      keterangan: row.keterangan || '',
+      nominal: Number(row.nominal || 0),
+      group: row.group || 'niko',
+      status: row.status || 'tersedia'
+    }));
+
+    listSaldoModalNiko = semuaSaldo.filter((s) => s.group === 'niko');
+    listSaldoModalFikri = semuaSaldo.filter((s) => s.group === 'fikri');
+
+    // Deteksi sumber modal yang SUDAH DIPAKAI oleh unit motor LAIN yang masih Ready
+    const usedByOtherMotors = new Set();
+    (allMotors || []).forEach((m) => {
+      if (String(m.id) !== String(idMotorAktif) && m.status === 'Ready') {
+        // Cek pemakaian modal niko di motor lain
+        if (m.saldo_modal_niko_id) {
+          usedByOtherMotors.add(Number(m.saldo_modal_niko_id));
+        } else if (Number(m.modal_niko) > 0) {
+          const match = listSaldoModalNiko.find((s) => s.nominal === Number(m.modal_niko));
+          if (match) usedByOtherMotors.add(match.id);
+        }
+
+        // Cek pemakaian modal fikri di motor lain
+        if (m.saldo_modal_fikri_id) {
+          usedByOtherMotors.add(Number(m.saldo_modal_fikri_id));
+        } else if (Number(m.modal_fikri) > 0) {
+          const match = listSaldoModalFikri.find((s) => s.nominal === Number(m.modal_fikri));
+          if (match) usedByOtherMotors.add(match.id);
+        }
+      }
+    });
+
+    // Auto-sync status di TABLE_SALDO_MODAL jika di DB masih tercatat tersedia
+    usedByOtherMotors.forEach((usedId) => {
+      client.from(TABLE_SALDO_MODAL).update({ status: 'terpakai' }).eq('id', usedId).then();
+    });
+
+    // Load data motor ini
+    const motor = formatMotorFromDB(dataMotor);
+    const isTerjual = motor.status === 'Terjual';
+
+    // Simpan ID saldo modal yang sudah terpakai (dari kolom FK baru)
+    prevSaldoModalNikoId = dataMotor.saldo_modal_niko_id || null;
+    prevSaldoModalFikriId = dataMotor.saldo_modal_fikri_id || null;
+
+    let currentNikoId = prevSaldoModalNikoId;
+    if (!currentNikoId && motor.modalNiko > 0) {
+      const match = listSaldoModalNiko.find((s) => s.nominal === motor.modalNiko);
+      if (match) currentNikoId = match.id;
+    }
+
+    let currentFikriId = prevSaldoModalFikriId;
+    if (!currentFikriId && motor.modalFikri > 0) {
+      const match = listSaldoModalFikri.find((s) => s.nominal === motor.modalFikri);
+      if (match) currentFikriId = match.id;
+    }
+
+    // Jika motor ini berstatus Terjual, pastikan modal yang pernah dipakainya tidak terkunci 'terpakai' di DB (jika tidak dipakai unit Ready lain)
+    if (isTerjual) {
+      if (currentNikoId && !usedByOtherMotors.has(currentNikoId)) {
+        client.from(TABLE_SALDO_MODAL).update({ status: 'tersedia' }).eq('id', currentNikoId).then();
+      }
+      if (currentFikriId && !usedByOtherMotors.has(currentFikriId)) {
+        client.from(TABLE_SALDO_MODAL).update({ status: 'tersedia' }).eq('id', currentFikriId).then();
+      }
+    }
+
+    // Isi dropdown opsi:
+    // Jika Terjual: tampilkan data historis yang terkunci
+    // Jika Ready: hanya tampilkan yang TIDAK dipakai motor lain & tersedia
+    isiDropdownModal('modalNikoSelect', listSaldoModalNiko, currentNikoId, usedByOtherMotors, isTerjual, motor.modalNiko);
+    isiDropdownModal('modalFikriSelect', listSaldoModalFikri, currentFikriId, usedByOtherMotors, isTerjual, motor.modalFikri);
+
+    listStokMotor = [motor];
+    bukaDetailMotor(idMotorAktif, currentNikoId, currentFikriId);
+
+    const pageDetail = document.getElementById('pageDetail');
+    if (pageDetail) pageDetail.classList.remove('hidden');
   } catch (err) {
     console.error(err);
     tampilkanToast('Gagal sinkronisasi data dari Supabase.');
@@ -119,7 +162,117 @@ async function tarikDataDariSheet() {
   }
 }
 
-function bukaDetailMotor(id) {
+// ============================================================
+// ISI OPSI DROPDOWN MODAL
+// ============================================================
+function isiDropdownModal(selectId, listSaldo, currentSelectedId = null, usedByOtherMotors = new Set(), isTerjual = false, historicalNominal = 0) {
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+
+  // Reset opsi
+  sel.innerHTML = '<option value="">-- Pilih Sumber --</option>';
+
+  if (isTerjual) {
+    // UNIT TERJUAL: Data transaksi historis telah selesai & terkunci.
+    // Tampilkan label sumber dengan nominal historis motor ini (bukan saldo master terbaru).
+    const matched = listSaldo.find((s) => currentSelectedId && String(s.id) === String(currentSelectedId));
+    const labelSumber = matched
+      ? matched.keterangan
+      : (currentSelectedId ? `Sumber #${currentSelectedId}` : 'Data Tercatat');
+
+    const opt = document.createElement('option');
+    opt.value = currentSelectedId || 'historical';
+    opt.text = `${labelSumber} — ${Number(historicalNominal).toLocaleString('id-ID')}`;
+    opt.dataset.nominal = historicalNominal;
+    opt.selected = true;
+    sel.appendChild(opt);
+    sel.value = opt.value;
+    konfigurasiCustomSelect(selectId);
+    return;
+  }
+
+  // UNIT READY (MASIH AKTIF):
+  // Pertahankan nilai yang sudah terpilih sebelumnya jika ada
+  const prevVal = sel.value || (currentSelectedId ? String(currentSelectedId) : '');
+
+  // Filter: hanya tampilkan yang sedang dipakai unit ini ATAU yang tidak dipakai unit lain & tersedia
+  const opsiTampil = listSaldo.filter((saldo) => {
+    if (currentSelectedId && String(saldo.id) === String(currentSelectedId)) {
+      return true;
+    }
+    // Jika sudah dipakai unit motor lain yang aktif -> jangan tampilkan
+    if (usedByOtherMotors.has(saldo.id)) {
+      return false;
+    }
+    return saldo.status === 'tersedia';
+  });
+
+  opsiTampil.forEach((saldo) => {
+    const opt = document.createElement('option');
+    opt.value = saldo.id;
+    opt.text = `${saldo.keterangan} — ${Number(saldo.nominal).toLocaleString('id-ID')}`;
+    opt.dataset.nominal = saldo.nominal;
+    opt.dataset.status = saldo.status;
+    sel.appendChild(opt);
+  });
+
+  // Kembalikan nilai terpilih jika masih ada dalam daftar
+  if (prevVal) sel.value = prevVal;
+
+  // Inisialisasi custom select
+  konfigurasiCustomSelect(selectId);
+}
+
+// ============================================================
+// HANDLER SAAT DROPDOWN DIPILIH
+// ============================================================
+function pilihModalDariDropdown(group) {
+  const selectId = group === 'niko' ? 'modalNikoSelect' : 'modalFikriSelect';
+  const hiddenId  = group === 'niko' ? 'modalNiko'        : 'modalFikri';
+
+  const sel = document.getElementById(selectId);
+  if (!sel) return;
+
+  const selectedOpt = sel.options[sel.selectedIndex];
+  const nominal = selectedOpt && selectedOpt.dataset.nominal
+    ? Number(selectedOpt.dataset.nominal)
+    : 0;
+
+  // Update hidden input (dipakai hitungSemua)
+  const hiddenEl = document.getElementById(hiddenId);
+  if (hiddenEl) hiddenEl.value = nominal;
+
+  window.apakahAdaPerubahan = true;
+  hitungSemua();
+}
+
+async function tarikDataDariSheet() {
+  await inisialisasiHalaman();
+}
+
+/**
+ * Helper untuk mengontrol tampilan preview gambar unit
+ */
+function setPreviewGambarUI(url) {
+  const previewImg = document.getElementById('previewGambar');
+  const placeholderDiv = document.getElementById('placeholderGambar');
+  const btnHapus = document.getElementById('btnHapusGambar');
+  if (!previewImg || !placeholderDiv || !btnHapus) return;
+
+  if (url) {
+    previewImg.src = url;
+    previewImg.classList.remove('hidden');
+    placeholderDiv.classList.add('hidden');
+    btnHapus.classList.remove('hidden');
+  } else {
+    previewImg.src = '';
+    previewImg.classList.add('hidden');
+    placeholderDiv.classList.remove('hidden');
+    btnHapus.classList.add('hidden');
+  }
+}
+
+function bukaDetailMotor(id, saldoNikoId = null, saldoFikriId = null) {
   idMotorAktif = id;
   const motor = listStokMotor.find((x) => String(x.id) === String(id));
   if (!motor) {
@@ -137,24 +290,9 @@ function bukaDetailMotor(id) {
   selectedGambarNama = null;
   currentGambarUrl = motor.gambar || '';
 
-  const previewImg = document.getElementById('previewGambar');
-  const placeholderDiv = document.getElementById('placeholderGambar');
-  const btnHapus = document.getElementById('btnHapusGambar');
   const inputGambar = document.getElementById('inputGambar');
-
   if (inputGambar) inputGambar.value = '';
-
-  if (currentGambarUrl) {
-    if (previewImg) previewImg.src = currentGambarUrl;
-    if (previewImg) previewImg.classList.remove('hidden');
-    if (placeholderDiv) placeholderDiv.classList.add('hidden');
-    if (btnHapus) btnHapus.classList.remove('hidden');
-  } else {
-    if (previewImg) previewImg.src = '';
-    if (previewImg) previewImg.classList.add('hidden');
-    if (placeholderDiv) placeholderDiv.classList.remove('hidden');
-    if (btnHapus) btnHapus.classList.add('hidden');
-  }
+  setPreviewGambarUI(currentGambarUrl);
 
   // Set Tanggal Flatpickr
   const tglBeliInput = document.getElementById('tglBeli');
@@ -175,9 +313,15 @@ function bukaDetailMotor(id) {
     }
   }
 
-  // Set Input Modal & Penjualan
-  document.getElementById('modalNiko').value = (motor.modalNiko || 0).toLocaleString('id-ID');
-  document.getElementById('modalFikri').value = (motor.modalFikri || 0).toLocaleString('id-ID');
+  const isTerjual = motor.status === 'Terjual';
+
+  // ---- Dropdown Modal Niko ----
+  preSelectDropdownModal('niko', saldoNikoId, motor.modalNiko, isTerjual);
+
+  // ---- Dropdown Modal Fikri ----
+  preSelectDropdownModal('fikri', saldoFikriId, motor.modalFikri, isTerjual);
+
+  // Set Harga Penjualan
   document.getElementById('hargaPenjualan').value = (motor.penjualan || 0).toLocaleString('id-ID');
 
   // Load tabel pengeluaran
@@ -189,7 +333,7 @@ function bukaDetailMotor(id) {
       : (typeof motor.pengeluaran === 'string' && motor.pengeluaran ? JSON.parse(motor.pengeluaran) : []);
 
     listPengeluaran.forEach((ops) => {
-      tambahBarisPengeluaran(ops.ket, String(ops.item), false);
+      tambahBarisPengeluaran(toTitleCase(ops.ket), String(ops.item), false);
     });
   }
 
@@ -200,12 +344,63 @@ function bukaDetailMotor(id) {
   window.apakahAdaPerubahan = false;
 }
 
+// ============================================================
+// PRE-SELECT DROPDOWN BERDASARKAN ID ATAU NOMINAL
+// ============================================================
+function preSelectDropdownModal(group, saldoId, nominalMotor, isTerjual = false) {
+  const selectId = group === 'niko' ? 'modalNikoSelect' : 'modalFikriSelect';
+  const hiddenId  = group === 'niko' ? 'modalNiko'        : 'modalFikri';
+  const listSaldo = group === 'niko' ? listSaldoModalNiko : listSaldoModalFikri;
+
+  const sel = document.getElementById(selectId);
+  const hiddenEl = document.getElementById(hiddenId);
+  if (!sel) return;
+
+  let matchedNominal = 0;
+
+  if (isTerjual) {
+    // Unit TERJUAL: Modal terkunci sesuai nominal historis motor ini!
+    // Tidak boleh ikut berubah walaupun master saldo modal bertambah.
+    if (saldoId) sel.value = String(saldoId);
+    matchedNominal = Number(nominalMotor) || 0;
+  } else if (saldoId) {
+    // Unit Ready: Jika terhubung ke ID saldo_modal, sinkronkan dengan nominal master terbaru
+    sel.value = String(saldoId);
+    const matched = listSaldo.find((s) => String(s.id) === String(saldoId));
+    if (matched) matchedNominal = matched.nominal;
+    else matchedNominal = Number(nominalMotor) || 0;
+  } else if (nominalMotor > 0) {
+    // Belum ada FK (motor lama) → coba cocokkan berdasarkan nominal
+    const matched = listSaldo.find((s) => s.nominal === nominalMotor);
+    if (matched) {
+      sel.value = String(matched.id);
+      matchedNominal = matched.nominal;
+    } else {
+      // Tidak cocok dengan saldo aktif (misal unit terjual atau data modal lampau)
+      let legacyOpt = sel.querySelector('option[value="legacy"]');
+      if (!legacyOpt) {
+        legacyOpt = document.createElement('option');
+        legacyOpt.value = 'legacy';
+        sel.appendChild(legacyOpt);
+      }
+      legacyOpt.text = `Data Tercatat (${Number(nominalMotor).toLocaleString('id-ID')})`;
+      legacyOpt.dataset.nominal = nominalMotor;
+      sel.value = 'legacy';
+      matchedNominal = nominalMotor;
+    }
+  } else {
+    sel.value = '';
+  }
+
+  // Update hidden input
+  if (hiddenEl) hiddenEl.value = matchedNominal;
+
+  // Re-render custom select agar tampil label yang tepat
+  konfigurasiCustomSelect(selectId);
+}
+
 function handleInputRupiah(input) {
-  if (input.value === '') return;
-  let selectionStart = input.selectionStart,
-    oldLength = input.value.length;
-  input.value = formatNumberWithDots(input.value);
-  input.selectionStart = selectionStart + (input.value.length - oldLength);
+  handleInputRupiahPreserveCursor(input);
   hitungSemua();
 }
 
@@ -223,10 +418,15 @@ function tambahBarisPengeluaran(keterangan = '', jumlah = '0', hitungUlang = tru
   tdKet.className = 'py-2 px-3';
   const inputKet = document.createElement('input');
   inputKet.type = 'text';
-  inputKet.className = 'w-full bg-white border border-gray-300 rounded px-2.5 py-1 text-sm focus:outline-none focus:border-blue-500';
-  inputKet.value = keterangan;
+  inputKet.className = 'w-full bg-white border border-gray-300 rounded px-2.5 py-1 text-sm focus:outline-none focus:border-blue-500 capitalize';
+  inputKet.value = toTitleCase(keterangan);
   inputKet.placeholder = 'Keterangan operasional...';
   inputKet.addEventListener('input', () => {
+    handleInputTitleCase(inputKet);
+    window.apakahAdaPerubahan = true;
+  });
+  inputKet.addEventListener('blur', () => {
+    inputKet.value = toTitleCase(inputKet.value.trim());
     window.apakahAdaPerubahan = true;
   });
   tdKet.appendChild(inputKet);
@@ -238,6 +438,9 @@ function tambahBarisPengeluaran(keterangan = '', jumlah = '0', hitungUlang = tru
   inputJml.className = 'w-full bg-white border border-gray-300 rounded px-2.5 py-1 text-sm text-left font-semibold text-gray-700 class-jumlah';
   const cleanJumlah = typeof jumlah === 'number' ? jumlah : Number(String(jumlah).replace(/\D/g, '')) || 0;
   inputJml.value = cleanJumlah.toLocaleString('id-ID');
+  inputJml.addEventListener('keydown', (e) => {
+    handleRupiahKeydown(e, inputJml);
+  });
   inputJml.addEventListener('input', () => {
     handleInputRupiah(inputJml);
   });
@@ -271,15 +474,6 @@ function tambahBarisPengeluaran(keterangan = '', jumlah = '0', hitungUlang = tru
   }
 }
 
-async function hapusBaris(btn) {
-  const tr = btn.closest('tr');
-  if (tr) {
-    tr.remove();
-    urutkanNomorTabel();
-    hitungSemua();
-  }
-}
-
 function urutkanNomorTabel() {
   const tbody = document.getElementById('bodyPengeluaran');
   if (!tbody) return;
@@ -292,7 +486,7 @@ function hitungSemua() {
   const mNikoElem = document.getElementById('modalNiko');
   if (!mNikoElem) return;
 
-  const detailStatus = document.getElementById('detailStatusSelect').value;
+  const detailStatus = document.getElementById('detailStatusSelect')?.value || STATUS_READY;
   const tglLakuInput = document.getElementById('tglLaku');
   if (tglLakuInput) {
     if (detailStatus === 'Ready') {
@@ -321,10 +515,29 @@ function hitungSemua() {
     }
   }
 
+  // Atur status dropdown modal (disable jika status Terjual)
+  const isTerjual = detailStatus === 'Terjual';
+  const selNiko = document.getElementById('modalNikoSelect');
+  const selFikri = document.getElementById('modalFikriSelect');
+  if (selNiko && selNiko.disabled !== isTerjual) {
+    selNiko.disabled = isTerjual;
+    if (!isTerjual) {
+      isiDropdownModal('modalNikoSelect', listSaldoModalNiko, selNiko.value, new Set());
+    }
+    konfigurasiCustomSelect('modalNikoSelect');
+  }
+  if (selFikri && selFikri.disabled !== isTerjual) {
+    selFikri.disabled = isTerjual;
+    if (!isTerjual) {
+      isiDropdownModal('modalFikriSelect', listSaldoModalFikri, selFikri.value, new Set());
+    }
+    konfigurasiCustomSelect('modalFikriSelect');
+  }
+
   window.apakahAdaPerubahan = true;
 
-  const mNiko = getCleanNumber(mNikoElem.value);
-  const mFikri = getCleanNumber(document.getElementById('modalFikri').value);
+  const mNiko = Number(document.getElementById('modalNiko').value) || 0;
+  const mFikri = Number(document.getElementById('modalFikri').value) || 0;
   const penjualan = getCleanNumber(document.getElementById('hargaPenjualan').value);
 
   let totalPengeluaran = 0;
@@ -365,7 +578,7 @@ function hitungSemua() {
       const inputs = tr.querySelectorAll('input');
       if (inputs.length >= 2) {
         arrPengeluaran.push({
-          ket: inputs[0].value,
+          ket: toTitleCase(inputs[0].value.trim()),
           item: getCleanNumber(inputs[1].value)
         });
       }
@@ -385,7 +598,9 @@ function hitungSemua() {
     pengeluaran: arrPengeluaran,
     gambar: currentGambarUrl,
     gambarBase64: selectedGambarBase64,
-    gambarNama: selectedGambarNama
+    gambarNama: selectedGambarNama,
+    saldoModalNikoId: selNiko && selNiko.value && !isNaN(Number(selNiko.value)) ? Number(selNiko.value) : null,
+    saldoModalFikriId: selFikri && selFikri.value && !isNaN(Number(selFikri.value)) ? Number(selFikri.value) : null
   };
 }
 
@@ -442,6 +657,11 @@ async function kirimDataKeSheet() {
     }
 
     const dbPayload = formatMotorToDB(payloadData);
+
+    // Tambah kolom FK saldo modal ke payload DB
+    dbPayload.saldo_modal_niko_id = payloadData.saldoModalNikoId || null;
+    dbPayload.saldo_modal_fikri_id = payloadData.saldoModalFikriId || null;
+
     const { error } = await client
       .from(TABLE_MOTOR)
       .update(dbPayload)
@@ -449,9 +669,17 @@ async function kirimDataKeSheet() {
 
     if (error) throw error;
 
+    // ---- Update status saldo modal ----
+    await updateStatusSaldoModal(
+      client,
+      payloadData.saldoModalNikoId,
+      payloadData.saldoModalFikriId,
+      payloadData.status
+    );
+
     window.apakahAdaPerubahan = false;
     tampilkanToast(`Sukses sinkron! Data unit ${payloadData.nama} berhasil diamankan.`);
-    tarikDataDariSheet();
+    await inisialisasiHalaman();
   } catch (err) {
     tampilkanToast('Gagal sinkron database: ' + err.message);
     console.error(err);
@@ -463,6 +691,69 @@ async function kirimDataKeSheet() {
     if (btnText) btnText.innerText = 'Sinkronisasikan Data';
     if (btnLoader) btnLoader.classList.add('hidden');
   }
+}
+
+// ============================================================
+// UPDATE STATUS SALDO MODAL SAAT SIMPAN
+// ============================================================
+async function updateStatusSaldoModal(client, newNikoId, newFikriId, motorStatus = 'Ready') {
+  const updates = [];
+
+  if (motorStatus === 'Terjual') {
+    // Unit TERJUAL: modal tidak lagi ditahan/dipakai oleh motor ini.
+    // Pastikan status saldo modal lama maupun baru kembali 'tersedia'
+    // (kecuali jika ada motor Ready lain yang sedang memakainya).
+    const idsToCheck = [newNikoId, newFikriId, prevSaldoModalNikoId, prevSaldoModalFikriId].filter(Boolean);
+
+    if (idsToCheck.length > 0) {
+      try {
+        const { data: readyMotors } = await client
+          .from(TABLE_MOTOR)
+          .select('id, saldo_modal_niko_id, saldo_modal_fikri_id')
+          .eq('status', 'Ready');
+
+        const activeUsedIds = new Set();
+        (readyMotors || []).forEach((m) => {
+          if (String(m.id) !== String(idMotorAktif)) {
+            if (m.saldo_modal_niko_id) activeUsedIds.add(Number(m.saldo_modal_niko_id));
+            if (m.saldo_modal_fikri_id) activeUsedIds.add(Number(m.saldo_modal_fikri_id));
+          }
+        });
+
+        idsToCheck.forEach((id) => {
+          if (!activeUsedIds.has(Number(id))) {
+            updates.push(client.from(TABLE_SALDO_MODAL).update({ status: 'tersedia' }).eq('id', id));
+          }
+        });
+      } catch (e) {
+        console.warn('Gagal cek ready motors saat update status modal:', e);
+      }
+    }
+  } else {
+    // Unit READY:
+    if (prevSaldoModalNikoId && prevSaldoModalNikoId !== newNikoId) {
+      updates.push(client.from(TABLE_SALDO_MODAL).update({ status: 'tersedia' }).eq('id', prevSaldoModalNikoId));
+    }
+    if (prevSaldoModalFikriId && prevSaldoModalFikriId !== newFikriId) {
+      updates.push(client.from(TABLE_SALDO_MODAL).update({ status: 'tersedia' }).eq('id', prevSaldoModalFikriId));
+    }
+
+    if (newNikoId) {
+      updates.push(client.from(TABLE_SALDO_MODAL).update({ status: 'terpakai' }).eq('id', newNikoId));
+    }
+    if (newFikriId) {
+      updates.push(client.from(TABLE_SALDO_MODAL).update({ status: 'terpakai' }).eq('id', newFikriId));
+    }
+  }
+
+  if (updates.length > 0) {
+    const results = await Promise.all(updates);
+    results.forEach(({ error }) => { if (error) console.warn('Update status saldo modal:', error); });
+  }
+
+  // Update state prevId untuk sesi berikutnya
+  prevSaldoModalNikoId = newNikoId;
+  prevSaldoModalFikriId = newFikriId;
 }
 
 async function hapusMotorDariSheet() {
@@ -484,6 +775,16 @@ async function hapusMotorDariSheet() {
     try {
       const client = getSupabase();
       if (!client) throw new Error('Supabase client belum diinisialisasi');
+
+      // Reset status saldo modal yang dipakai motor ini → kembali 'tersedia'
+      const resetUpdates = [];
+      if (prevSaldoModalNikoId) {
+        resetUpdates.push(client.from(TABLE_SALDO_MODAL).update({ status: 'tersedia' }).eq('id', prevSaldoModalNikoId));
+      }
+      if (prevSaldoModalFikriId) {
+        resetUpdates.push(client.from(TABLE_SALDO_MODAL).update({ status: 'tersedia' }).eq('id', prevSaldoModalFikriId));
+      }
+      if (resetUpdates.length > 0) await Promise.all(resetUpdates);
 
       const { error } = await client
         .from(TABLE_MOTOR)
@@ -534,16 +835,7 @@ function handlePilihGambar(input) {
         selectedGambarBase64 = canvas.toDataURL('image/jpeg', 0.7);
         selectedGambarNama = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
 
-        const previewImg = document.getElementById('previewGambar');
-        const placeholderDiv = document.getElementById('placeholderGambar');
-        const btnHapus = document.getElementById('btnHapusGambar');
-
-        if (previewImg && placeholderDiv && btnHapus) {
-          previewImg.src = selectedGambarBase64;
-          previewImg.classList.remove('hidden');
-          placeholderDiv.classList.add('hidden');
-          btnHapus.classList.remove('hidden');
-        }
+        setPreviewGambarUI(selectedGambarBase64);
 
         hitungSemua();
       };
@@ -565,16 +857,7 @@ async function hapusGambar() {
   const inputGambar = document.getElementById('inputGambar');
   if (inputGambar) inputGambar.value = '';
 
-  const previewImg = document.getElementById('previewGambar');
-  const placeholderDiv = document.getElementById('placeholderGambar');
-  const btnHapus = document.getElementById('btnHapusGambar');
-
-  if (previewImg && placeholderDiv && btnHapus) {
-    previewImg.src = '';
-    previewImg.classList.add('hidden');
-    placeholderDiv.classList.remove('hidden');
-    btnHapus.classList.add('hidden');
-  }
+  setPreviewGambarUI('');
 
   hitungSemua();
 }

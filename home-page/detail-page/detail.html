@@ -33,7 +33,7 @@
     <div id="pageDetail" class="hidden">
         <!-- Komponen Header Navigasi Sticky -->
         <app-header 
-            back-text="Kembali & Update Dashboard" 
+            back-text="Kembali ke Dashboard" 
             on-back="kembaliKeBeranda()" 
             max-width="max-w-4xl">
         </app-header>
@@ -99,23 +99,22 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <!-- Modal Niko: Dropdown dari Card 1 saldo modal -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Modal Awal Niko</label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-2 text-gray-500 text-sm">Rp</span>
-                        <input type="text" id="modalNiko"
-                            class="w-full bg-white border border-gray-300 rounded-md pl-10 pr-3 py-1.5 text-right font-semibold text-gray-800 input-rupiah"
-                            oninput="handleInputRupiah(this)" />
-                    </div>
+                    <select id="modalNikoSelect" onchange="pilihModalDariDropdown('niko')">
+                        <option value="">-- Pilih Sumber --</option>
+                    </select>
+                    <!-- Hidden input untuk hitungSemua() -->
+                    <input type="hidden" id="modalNiko" value="0" />
                 </div>
+                <!-- Modal Fikri: Dropdown dari Card 2 saldo modal -->
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
                     <label class="block text-xs font-bold text-gray-500 uppercase mb-2">Modal Awal Fikri</label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-2 text-gray-500 text-sm">Rp</span>
-                        <input type="text" id="modalFikri"
-                            class="w-full bg-white border border-gray-300 rounded-md pl-10 pr-3 py-1.5 text-right font-semibold text-gray-800 input-rupiah"
-                            oninput="handleInputRupiah(this)" />
-                    </div>
+                    <select id="modalFikriSelect" onchange="pilihModalDariDropdown('fikri')">
+                        <option value="">-- Pilih Sumber --</option>
+                    </select>
+                    <input type="hidden" id="modalFikri" value="0" />
                 </div>
                 <div class="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
                     <label class="block text-xs font-bold text-emerald-700 uppercase mb-2">Harga Penjualan</label>
@@ -123,6 +122,7 @@
                         <span class="absolute left-3 top-2 text-emerald-600 text-sm">Rp</span>
                         <input type="text" id="hargaPenjualan"
                             class="w-full bg-white border border-emerald-300 rounded-md pl-10 pr-3 py-1.5 text-right font-bold text-emerald-700 input-rupiah"
+                            onkeydown="handleRupiahKeydown(event, this)"
                             oninput="handleInputRupiah(this)" />
                     </div>
                 </div>

@@ -1,41 +1,74 @@
 let listStokMotor = [];
-let payloadData = {};
+let globalCounters = { total: 0, ready: 0, terjual: 0 };
 
 window.addEventListener('DOMContentLoaded', () => {
   // Isi opsi dropdown filter dari data master bersama
   isiDropdownBulan('filterBulan');
   isiDropdownTahun('filterTahun', []);
-  isiDropdownStatus('filterStatus');
 
-  // Inisialisasi dropdown kustom beranda
+  // Set tampilan tab status aktif ke 'Ready' secara default
+  updateTabStatusUI('Ready');
+
+  // Inisialisasi dropdown kustom beranda untuk bulan dan tahun
   konfigurasiCustomSelect('filterBulan');
   konfigurasiCustomSelect('filterTahun');
-  konfigurasiCustomSelect('filterStatus');
 
   // Inisialisasi Flatpickr pada input tanggal beli modal tambah
   const modalTglInput = document.getElementById('modalInputTglBeli');
   if (modalTglInput) {
-    flatpickr("#modalInputTglBeli", {
-      dateFormat: "Y-m-d",
-      altInput: true,
-      altFormat: "d F Y",
-      locale: "id"
-    });
+    flatpickr("#modalInputTglBeli", FLATPICKR_CONFIG);
   }
 
-  // Tarik data awal dari database Supabase
+  // Tarik data awal dari database Supabase (hanya unit Ready secara default agar cepat & ringan)
   tarikDataDariSheet();
 });
 
+/**
+ * Handler ganti tab filter status: All (''), Ready ('Ready'), Terjual ('Terjual')
+ */
+function setFilterStatus(status) {
+  const hiddenInput = document.getElementById('filterStatus');
+  if (hiddenInput) hiddenInput.value = status;
+  updateTabStatusUI(status);
+  tarikDataDariSheet();
+}
 
+/**
+ * Update styling visual tab bar aktif dan badge count
+ */
+function updateTabStatusUI(status = 'Ready') {
+  const tabAll = document.getElementById('tabStatusAll');
+  const tabReady = document.getElementById('tabStatusReady');
+  const tabTerjual = document.getElementById('tabStatusTerjual');
+  if (!tabAll || !tabReady || !tabTerjual) return;
 
-function toggleFilter() {
-  const container = document.getElementById('containerFilter');
-  const arrow = document.getElementById('arrowFilter');
-  if (container && arrow) {
-    container.classList.toggle('hidden');
-    container.classList.toggle('grid');
-    arrow.classList.toggle('rotate-180');
+  const baseTabClass = 'flex-1 sm:flex-none py-1.5 px-3.5 text-xs sm:text-sm rounded-lg transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer';
+  const inactiveClass = `${baseTabClass} text-gray-500 hover:text-gray-800 font-medium hover:bg-gray-200/50`;
+
+  tabAll.className = inactiveClass;
+  tabReady.className = inactiveClass;
+  tabTerjual.className = inactiveClass;
+
+  const bTotal = document.getElementById('countTotal');
+  const bReady = document.getElementById('countReady');
+  const bTerjual = document.getElementById('countTerjual');
+  const inactiveBadge = 'px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-gray-200 text-gray-600';
+
+  if (bTotal) bTotal.className = inactiveBadge;
+  if (bReady) bReady.className = inactiveBadge;
+  if (bTerjual) bTerjual.className = inactiveBadge;
+
+  const statusClean = String(status || '').trim().toLowerCase();
+  if (statusClean === 'ready') {
+    tabReady.className = `${baseTabClass} bg-white text-blue-600 font-bold shadow-sm`;
+    if (bReady) bReady.className = 'px-1.5 py-0.5 text-[10px] font-extrabold rounded-full bg-blue-100 text-blue-700';
+  } else if (statusClean === 'terjual') {
+    tabTerjual.className = `${baseTabClass} bg-white text-emerald-600 font-bold shadow-sm`;
+    if (bTerjual) bTerjual.className = 'px-1.5 py-0.5 text-[10px] font-extrabold rounded-full bg-emerald-100 text-emerald-700';
+  } else {
+    // All
+    tabAll.className = `${baseTabClass} bg-white text-gray-900 font-bold shadow-sm`;
+    if (bTotal) bTotal.className = 'px-1.5 py-0.5 text-[10px] font-extrabold rounded-full bg-gray-200 text-gray-800';
   }
 }
 
@@ -43,14 +76,34 @@ async function tarikDataDariSheet() {
   const loader = document.getElementById('globalLoader');
   if (loader) loader.classList.remove('hidden');
 
+  const filterStatus = document.getElementById('filterStatus')?.value || '';
+
   try {
     const client = getSupabase();
     if (!client) throw new Error('Supabase client belum diinisialisasi');
 
-    const { data, error } = await client
-      .from(TABLE_MOTOR)
-      .select('*')
-      .order('id', { ascending: false });
+    // 1. Ambil statistik counter ringan (hanya kolom status, sangat ringan & cepat)
+    const { data: statsData } = await client.from(TABLE_MOTOR).select('status');
+    if (statsData) {
+      globalCounters.total = statsData.length;
+      globalCounters.ready = statsData.filter((m) => (m.status || '').toLowerCase() === 'ready').length;
+      globalCounters.terjual = statsData.filter((m) => (m.status || '').toLowerCase() === 'terjual').length;
+
+      const cTotal = document.getElementById('countTotal');
+      const cReady = document.getElementById('countReady');
+      const cTerjual = document.getElementById('countTerjual');
+      if (cTotal) cTotal.innerText = globalCounters.total;
+      if (cReady) cReady.innerText = globalCounters.ready;
+      if (cTerjual) cTerjual.innerText = globalCounters.terjual;
+    }
+
+    // 2. Query unit motor - default HANYA ambil unit 'Ready' agar sangat cepat dan ringan
+    let query = client.from(TABLE_MOTOR).select('*').order('id', { ascending: false });
+    if (filterStatus) {
+      query = query.eq('status', filterStatus);
+    }
+
+    const { data, error } = await query;
 
     if (error) throw error;
 
@@ -142,7 +195,7 @@ function renderBeranda() {
     const imgHtml = motor.gambar
       ? `<div class="w-full aspect-[4/3] rounded-lg overflow-hidden mb-3 bg-gray-100 border border-gray-100">
            <img src="${motor.gambar}" alt="${motor.nama}" loading="lazy" referrerpolicy="no-referrer" class="w-full h-full object-cover"
-             onerror="if(!this.dataset.retry){this.dataset.retry='1';setTimeout(()=>{this.src='${motor.gambar}';},1200);}else{this.parentElement.innerHTML='<div class=\\'w-full h-full bg-gray-50 flex items-center justify-center text-gray-300\\'><i class=\\'fa-solid fa-motorcycle text-3xl\\'></i></div>';}" />
+             onerror="handleMotorImageError(this, '${motor.gambar}')" />
          </div>`
       : `<div class="w-full aspect-[4/3] rounded-lg bg-gray-50 flex items-center justify-center mb-3 text-gray-300 border border-dashed border-gray-200"><i class="fa-solid fa-motorcycle text-3xl"></i></div>`;
 
@@ -184,9 +237,17 @@ function renderBeranda() {
   const cReady = document.getElementById('countReady');
   const cTerjual = document.getElementById('countTerjual');
 
-  if (cTotal) cTotal.innerText = totalTercatat;
-  if (cReady) cReady.innerText = ready;
-  if (cTerjual) cTerjual.innerText = terjual;
+  // Jika user memfilter bulan atau tahun, tampilkan hitungan sesuai hasil filter
+  if (filterBulan || filterTahun) {
+    if (cTotal) cTotal.innerText = totalTercatat;
+    if (cReady) cReady.innerText = ready;
+    if (cTerjual) cTerjual.innerText = terjual;
+  } else {
+    // Tampilkan total keseluruhan aktual dari server
+    if (cTotal) cTotal.innerText = globalCounters.total;
+    if (cReady) cReady.innerText = globalCounters.ready;
+    if (cTerjual) cTerjual.innerText = globalCounters.terjual;
+  }
 }
 
 function bukaModalTambah() {

@@ -11,6 +11,118 @@ function formatRupiahDisplay(angka) {
   return 'Rp ' + Number(angka || 0).toLocaleString('id-ID');
 }
 
+// Alias konsisten untuk seluruh modul
+const formatRupiah = formatRupiahDisplay;
+
+/**
+ * Format string agar setiap kata diawali huruf kapital (Title Case)
+ */
+function toTitleCase(str) {
+  if (!str) return '';
+  return String(str).replace(/\b[a-z]/g, (char) => char.toUpperCase());
+}
+
+/**
+ * Handler input event untuk auto-kapitalisasi huruf pertama setiap kata dengan preservasi posisi kursor
+ */
+function handleInputTitleCase(input) {
+  if (!input) return;
+  const start = input.selectionStart;
+  const end = input.selectionEnd;
+  const formatted = toTitleCase(input.value);
+  if (input.value !== formatted) {
+    input.value = formatted;
+    input.setSelectionRange(start, end);
+  }
+}
+
+/**
+ * Format string digit menjadi format titik ribuan Indonesia tanpa desimal
+ */
+function formatDigitsWithDots(digitsStr) {
+  if (!digitsStr) return '';
+  const clean = String(digitsStr).replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+  if (!clean) return '0';
+  return clean.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+/**
+ * Formatter input rupiah presisi yang mempertahankan posisi kursor di mana pun user mengedit
+ * (tengah, awal, akhir) tanpa melompat ke belakang ataupun menghapus digit lain secara tidak sengaja.
+ */
+function handleInputRupiahPreserveCursor(input) {
+  if (!input) return;
+  const rawVal = input.value;
+  if (!rawVal || rawVal.trim() === '') {
+    input.value = '';
+    return;
+  }
+
+  const selStart = input.selectionStart || 0;
+  // Hitung jumlah digit di sebelah kiri posisi kursor saat ini
+  const digitsBefore = (rawVal.slice(0, selStart).match(/\d/g) || []).length;
+
+  const rawDigits = rawVal.replace(/\D/g, '');
+  if (!rawDigits) {
+    input.value = '';
+    return;
+  }
+
+  const formatted = formatDigitsWithDots(rawDigits);
+  input.value = formatted;
+
+  // Tempatkan kembali kursor tepat setelah digit yang sama dalam string hasil format
+  let newPos = 0;
+  let count = 0;
+  if (digitsBefore === 0) {
+    newPos = 0;
+  } else {
+    for (let i = 0; i < formatted.length; i++) {
+      if (/\d/.test(formatted[i])) {
+        count++;
+      }
+      if (count === digitsBefore) {
+        newPos = i + 1;
+        break;
+      }
+    }
+    if (count < digitsBefore) {
+      newPos = formatted.length;
+    }
+  }
+
+  input.setSelectionRange(newPos, newPos);
+}
+
+/**
+ * Mencegah kursor tersangkut pada titik pemisah saat menekan tombol Backspace atau Delete
+ */
+function handleRupiahKeydown(e, input) {
+  if (!input) return;
+  if (e.key === 'Backspace' && input.selectionStart === input.selectionEnd) {
+    const pos = input.selectionStart;
+    // Jika kursor tepat berada setelah titik (pos > 0 && char di pos-1 adalah '.'), hapus angka sebelum titik
+    if (pos > 0 && input.value[pos - 1] === '.') {
+      e.preventDefault();
+      const val = input.value;
+      const cutStart = Math.max(0, pos - 2);
+      input.value = val.slice(0, cutStart) + val.slice(pos - 1);
+      input.setSelectionRange(cutStart, cutStart);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  } else if (e.key === 'Delete' && input.selectionStart === input.selectionEnd) {
+    const pos = input.selectionStart;
+    // Jika kursor tepat berada sebelum titik (pos < length && char di pos adalah '.'), hapus angka sesudah titik
+    if (pos < input.value.length && input.value[pos] === '.') {
+      e.preventDefault();
+      const val = input.value;
+      input.value = val.slice(0, pos) + val.slice(pos + 2);
+      input.setSelectionRange(pos, pos);
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+    }
+  }
+}
+
 // MAPPER DARI/KE SUPABASE DATABASE
 function formatMotorFromDB(row) {
   if (!row) return null;
@@ -81,7 +193,30 @@ const MASTER_BULAN = [
   { value: '12', nama: 'Desember' }
 ];
 
-const MASTER_STATUS = ['Ready', 'Terjual'];
+const STATUS_READY = 'Ready';
+const STATUS_TERJUAL = 'Terjual';
+const MASTER_STATUS = [STATUS_READY, STATUS_TERJUAL];
+
+// Konfigurasi standar Flatpickr untuk seluruh modul
+const FLATPICKR_CONFIG = {
+  dateFormat: "Y-m-d",
+  altInput: true,
+  altFormat: "d F Y",
+  locale: "id"
+};
+
+/**
+ * Fallback handler gambar unit motor jika gagal memuat
+ */
+function handleMotorImageError(imgEl, originalUrl) {
+  if (!imgEl) return;
+  if (!imgEl.dataset.retry && originalUrl) {
+    imgEl.dataset.retry = '1';
+    setTimeout(() => { imgEl.src = originalUrl; }, 1200);
+  } else {
+    imgEl.parentElement.innerHTML = '<div class="w-full h-full bg-gray-50 flex items-center justify-center text-gray-300"><i class="fa-solid fa-motorcycle text-3xl"></i></div>';
+  }
+}
 
 /**
  * Mengisi dropdown filter Bulan secara standar dari MASTER_BULAN

@@ -137,11 +137,6 @@ function prosesDataKeuangan() {
   updateGrafikKeuangan(motorTerjual, filterBulan, filterTahun);
 }
 
-// Format Angka ke Rupiah Display
-function formatRupiah(number) {
-  return 'Rp ' + (number || 0).toLocaleString('id-ID');
-}
-
 // Render data motor ke elemen tabel
 function renderTabelKeuangan(motorList) {
   const tbody = document.getElementById('bodyTabelKeuangan');

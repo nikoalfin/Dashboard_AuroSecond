@@ -50,55 +50,44 @@
       </div>
     </div>
 
-    <!-- Tombol Filter Pencarian (Hanya muncul di Mobile/HP) -->
-    <button onclick="toggleFilter()"
-      class="w-full bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 font-bold text-sm px-4 py-2.5 sm:py-3 rounded-xl shadow-sm cursor-pointer mb-3 sm:mb-4 flex items-center justify-between sm:hidden transition-all duration-200">
-      <span class="flex items-center gap-2 text-blue-600">
-        <i class="fa-solid fa-sliders text-sm"></i> Filter Pencarian
-      </span>
-      <svg id="arrowFilter" class="w-4 h-4 text-gray-500 transition-transform duration-200" fill="none"
-        stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-      </svg>
-    </button>
+    <!-- State Status Filter Aktif -->
+    <input type="hidden" id="filterStatus" value="Ready" />
 
-    <!-- Container Grid Filter (Tersembunyi di HP secara default, selalu muncul di Desktop) -->
-    <div id="containerFilter" class="hidden sm:grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-      <div>
-        <label for="filterBulan" class="block text-xs font-bold text-gray-500 uppercase mb-1">Bulan</label>
-        <select id="filterBulan"
-          class="w-full bg-white border border-gray-300 rounded-lg p-2 text-sm focus:outline-none"
-          onchange="renderBeranda()">
-        </select>
+    <!-- Filter Bar Terpadu: Tab Bar Status + Filter Waktu Kompak -->
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 mb-4 sm:mb-5">
+      <!-- 1. Tab Bar Status Unit (All, Ready, Terjual) -->
+      <div class="bg-gray-100/90 p-1 rounded-xl flex items-center gap-1 shadow-inner border border-gray-200/60 w-full sm:w-auto">
+        <button type="button" id="tabStatusAll" onclick="setFilterStatus('')"
+          class="flex-1 sm:flex-none py-1.5 px-3.5 text-xs sm:text-sm rounded-lg transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer text-gray-500 hover:text-gray-800 font-medium hover:bg-gray-200/50">
+          <span>All</span>
+          <span id="countTotal" class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-gray-200 text-gray-600">0</span>
+        </button>
+        <button type="button" id="tabStatusReady" onclick="setFilterStatus('Ready')"
+          class="flex-1 sm:flex-none py-1.5 px-3.5 text-xs sm:text-sm rounded-lg transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer bg-white text-blue-600 font-bold shadow-sm">
+          <span>Ready</span>
+          <span id="countReady" class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-blue-100 text-blue-700">0</span>
+        </button>
+        <button type="button" id="tabStatusTerjual" onclick="setFilterStatus('Terjual')"
+          class="flex-1 sm:flex-none py-1.5 px-3.5 text-xs sm:text-sm rounded-lg transition-all duration-150 flex items-center justify-center gap-1.5 cursor-pointer text-gray-500 hover:text-gray-800 font-medium hover:bg-gray-200/50">
+          <span>Terjual</span>
+          <span id="countTerjual" class="px-1.5 py-0.5 text-[10px] font-bold rounded-full bg-gray-200 text-gray-600">0</span>
+        </button>
       </div>
-      <div>
-        <label for="filterTahun" class="block text-xs font-bold text-gray-500 uppercase mb-1">Tahun</label>
-        <select id="filterTahun"
-          class="w-full bg-white border border-gray-300 rounded-lg p-2 text-sm focus:outline-none"
-          onchange="renderBeranda()">
-        </select>
-      </div>
-      <div>
-        <label for="filterStatus" class="block text-xs font-bold text-gray-500 uppercase mb-1">Status Unit</label>
-        <select id="filterStatus"
-          class="w-full bg-white border border-gray-300 rounded-lg p-2 text-sm focus:outline-none"
-          onchange="renderBeranda()">
-        </select>
-      </div>
-    </div>
 
-    <div class="grid grid-cols-3 gap-4 mb-6">
-      <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm text-center">
-        <span class="block text-xs font-bold text-gray-400 uppercase">Total Unit</span>
-        <span id="countTotal" class="text-2xl font-bold text-gray-800">0</span>
-      </div>
-      <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm text-center">
-        <span class="block text-xs font-bold text-blue-500 uppercase">Ready</span>
-        <span id="countReady" class="text-2xl font-bold text-blue-600">0</span>
-      </div>
-      <div class="bg-white border border-gray-200 rounded-xl p-4 shadow-sm text-center">
-        <span class="block text-xs font-bold text-emerald-500 uppercase">Terjual</span>
-        <span id="countTerjual" class="text-2xl font-bold text-emerald-600">0</span>
+      <!-- 2. Filter Waktu (Bulan & Tahun) Kompak Tanpa Makan Space -->
+      <div class="flex items-center gap-2 w-full sm:w-auto">
+        <div class="flex-1 sm:w-44">
+          <select id="filterBulan"
+            class="w-full bg-white border border-gray-200 rounded-lg py-1.5 px-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-blue-500 shadow-sm cursor-pointer"
+            onchange="renderBeranda()">
+          </select>
+        </div>
+        <div class="w-28 sm:w-32">
+          <select id="filterTahun"
+            class="w-full bg-white border border-gray-200 rounded-lg py-1.5 px-2.5 text-xs font-semibold text-gray-700 focus:outline-none focus:border-blue-500 shadow-sm cursor-pointer"
+            onchange="renderBeranda()">
+          </select>
+        </div>
       </div>
     </div>
 
