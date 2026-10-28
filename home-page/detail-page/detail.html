@@ -26,8 +26,11 @@
 
 <body class="bg-gray-50 text-gray-800 min-h-screen">
     <div id="globalLoader" class="fixed inset-0 bg-white/80 z-50 flex flex-col items-center justify-center gap-3">
-        <div class="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full"></div>
-        <p class="text-sm font-bold text-gray-600">Loading...</p>
+        <svg class="animate-spin h-9 w-9 text-blue-600" viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+            <path d="M 50 10 A 40 40 0 0 0 31.92 85.68 A 36.57 36.57 0 0 1 50 21.22 Z"/>
+            <path d="M 50 90 A 40 40 0 0 0 68.08 14.32 A 36.57 36.57 0 0 1 50 78.78 Z"/>
+        </svg>
+        <p class="text-xs font-bold text-gray-600 tracking-wide">Loading...</p>
     </div>
 
     <div id="pageDetail" class="hidden">
@@ -181,8 +184,11 @@
                     class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-lg shadow transition flex justify-center items-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-cloud-arrow-up"></i>
                     <span id="btnText">Sinkronisasikan Data</span>
-                    <span id="btnLoader"
-                        class="hidden animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></span>
+                    <span id="btnLoader" class="hidden items-center gap-1">
+                        <span class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: -0.32s"></span>
+                        <span class="w-1.5 h-1.5 bg-white rounded-full animate-bounce" style="animation-delay: -0.16s"></span>
+                        <span class="w-1.5 h-1.5 bg-white rounded-full animate-bounce"></span>
+                    </span>
                 </button>
                 <button onclick="hapusMotorDariSheet()"
                     class="bg-red-500 hover:bg-rose-200 text-white font-bold py-3 px-6 rounded-lg transition flex justify-center items-center gap-2 cursor-pointer border border-rose-200">

@@ -173,31 +173,33 @@ function renderGrupTabel(group, tbodyId, totalId) {
     const badgeClass = isTermasuk
       ? 'bg-red-100 text-red-600 border border-red-200'
       : 'bg-emerald-100 text-emerald-700 border border-emerald-200';
-    const badgeText = isTermasuk ? '🔴 Terpakai' : '🟢 Tersedia';
+    const badgeText = isTermasuk ? 'Terpakai' : 'Tersedia';
+    const dotColor = isTermasuk ? 'bg-red-500' : 'bg-emerald-500';
 
     tr.innerHTML = `
-      <td class="py-3 px-4 text-xs font-bold text-gray-400 text-center hidden sm:table-cell">${localIdx + 1}</td>
-      <td class="py-2 px-3">
-        <input type="text" value="${toTitleCase(sumber.keterangan || '')}" placeholder="Keterangan sumber..."
-          class="w-full bg-white border border-gray-300 rounded px-2.5 py-1 text-sm focus:outline-none focus:border-blue-500 capitalize"
+      <td class="py-2.5 px-3 text-xs font-bold text-gray-400 text-center hidden sm:table-cell">${localIdx + 1}</td>
+      <td class="py-1.5 sm:py-2 px-1.5 sm:px-3">
+        <input type="text" value="${toTitleCase(sumber.keterangan || '')}" placeholder="Keterangan..."
+          class="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs sm:text-sm focus:outline-none focus:border-blue-500 capitalize"
           oninput="handleInputTitleCase(this); updateKeterangan(${globalIdx}, this.value)"
           onblur="this.value = toTitleCase(this.value.trim()); updateKeterangan(${globalIdx}, this.value)" />
       </td>
-      <td class="py-2 px-3">
+      <td class="py-1.5 sm:py-2 px-1.5 sm:px-3">
         <input type="text" value="${Number(sumber.nominal || 0).toLocaleString('id-ID')}" placeholder="0"
-          class="w-full bg-white border border-gray-300 rounded px-2.5 py-1 text-sm text-left font-semibold text-gray-700"
+          class="w-full bg-white border border-gray-300 rounded px-2 py-1 text-xs sm:text-sm text-left font-semibold text-gray-700"
           onkeydown="handleRupiahKeydown(event, this)"
           oninput="updateNominal(${globalIdx}, this)" />
       </td>
-      <td class="py-2 px-3 text-center">
-        <span class="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full ${badgeClass} select-none cursor-default"
-          title="Status ditentukan otomatis oleh sistem berdasarkan pemakaian di motor">
-          ${badgeText}
+      <td class="py-1.5 sm:py-2 px-1 sm:px-2 text-center">
+        <span class="inline-flex items-center gap-1 text-[10px] sm:text-[11px] font-bold px-1.5 sm:px-2.5 py-0.5 sm:py-1 rounded-full ${badgeClass} select-none cursor-default whitespace-nowrap"
+          title="Status ditentukan otomatis oleh sistem">
+          <span class="w-1.5 h-1.5 rounded-full ${dotColor} shrink-0"></span>
+          <span>${badgeText}</span>
         </span>
       </td>
-      <td class="py-2 px-3 text-center">
+      <td class="py-1.5 sm:py-2 px-1 sm:px-2 text-center">
         <button onclick="hapusBaris(${globalIdx})" title="Hapus sumber ini"
-          class="bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 h-8 w-8 rounded-lg cursor-pointer flex items-center justify-center transition shadow-xs mx-auto">
+          class="bg-red-50 hover:bg-red-100 text-red-500 border border-red-200 h-7 w-7 sm:h-8 sm:w-8 rounded-lg cursor-pointer flex items-center justify-center transition shadow-2xs mx-auto">
           <i class="fa-solid fa-trash-can text-xs"></i>
         </button>
       </td>

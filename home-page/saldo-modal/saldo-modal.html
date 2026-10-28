@@ -20,8 +20,11 @@
 
   <!-- Global Loader -->
   <div id="globalLoader" class="fixed inset-0 bg-white/80 z-50 flex flex-col items-center justify-center gap-3">
-    <div class="animate-spin h-10 w-10 border-4 border-blue-600 border-t-transparent rounded-full"></div>
-    <p class="text-sm font-bold text-gray-600">Memuat data saldo modal...</p>
+    <svg class="animate-spin h-9 w-9 text-blue-600" viewBox="0 0 100 100" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+      <path d="M 50 10 A 40 40 0 0 0 31.92 85.68 A 36.57 36.57 0 0 1 50 21.22 Z"/>
+      <path d="M 50 90 A 40 40 0 0 0 68.08 14.32 A 36.57 36.57 0 0 1 50 78.78 Z"/>
+    </svg>
+    <p class="text-xs font-bold text-gray-600 tracking-wide">Memuat data saldo modal...</p>
   </div>
 
   <!-- Sticky Header -->
@@ -65,91 +68,91 @@
     </div>
 
     <!-- ===================== CARD 1: MODAL NIKO GROUP ===================== -->
-    <div class="bg-white rounded-xl shadow-xl p-5 sm:p-6 border border-blue-100 mb-4 sm:mb-5">
-      <div class="flex justify-between items-center mb-3">
+    <div class="bg-white rounded-xl shadow-xl p-3.5 sm:p-6 border border-blue-100 mb-4 sm:mb-5">
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3">
         <div>
           <h2 class="text-base font-bold text-blue-700 flex items-center gap-2">
-            <span class="inline-flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded-full text-xs font-black">1</span>
+            <span class="inline-flex items-center justify-center w-6 h-6 bg-blue-600 text-white rounded-full text-xs font-black shrink-0">1</span>
             Modal Niko Group
           </h2>
-          <p class="text-xs text-gray-400 mt-0.5">Sumber modal: Nova, Niko, Ibuk</p>
+          <p class="text-[11px] sm:text-xs text-gray-400 mt-0.5">Sumber modal: Nova, Niko, Ibuk</p>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg">
+        <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto pt-1 sm:pt-0">
+          <span class="text-xs font-bold text-blue-700 bg-blue-50 border border-blue-200 px-2.5 py-1 rounded-lg shrink-0">
             Total: <span id="totalCard1">Rp 0</span>
           </span>
           <button onclick="tambahBaris('niko')"
-            class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-2 rounded-lg cursor-pointer flex items-center gap-1.5 transition">
+            class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 transition shrink-0 shadow-xs">
             <i class="fa-solid fa-plus text-xs"></i> Tambah
           </button>
         </div>
       </div>
       <div class="overflow-x-auto border border-gray-200 rounded-lg">
-        <table class="w-full min-w-[500px] text-left border-collapse">
+        <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-blue-50 text-blue-700 text-xs uppercase font-bold border-b border-blue-100">
-              <th class="p-3 w-10 text-center hidden sm:table-cell">No</th>
-              <th class="p-3">Keterangan</th>
-              <th class="p-3 w-36 sm:w-44 text-left">Jumlah (Rp)</th>
-              <th class="p-3 w-28 text-center">Status</th>
-              <th class="p-3 w-14 text-center">Aksi</th>
+            <tr class="bg-blue-50 text-blue-700 text-[10px] sm:text-xs uppercase font-bold border-b border-blue-100">
+              <th class="p-2 sm:p-3 w-8 sm:w-10 text-center hidden sm:table-cell">No</th>
+              <th class="p-2 sm:p-3">Keterangan</th>
+              <th class="p-2 sm:p-3 w-28 sm:w-44 text-left">Jumlah (Rp)</th>
+              <th class="p-2 sm:p-3 w-20 sm:w-28 text-center">Status</th>
+              <th class="p-2 sm:p-3 w-9 sm:w-14 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody id="tbodyCard1" class="divide-y divide-gray-100 bg-white"></tbody>
         </table>
       </div>
-      <div class="mt-4 flex justify-end pt-3 border-t border-gray-100">
+      <div class="mt-3.5 sm:mt-4 flex justify-end pt-3 border-t border-gray-100">
         <button onclick="simpanGroup('niko')"
-          class="bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow transition cursor-pointer flex items-center gap-2">
+          class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-2">
           <i class="fa-solid fa-floppy-disk"></i> Simpan Card 1
         </button>
       </div>
     </div>
 
     <!-- ===================== CARD 2: MODAL FIKRI GROUP ===================== -->
-    <div class="bg-white rounded-xl shadow-xl p-5 sm:p-6 border border-sky-100 mb-4 sm:mb-5">
-      <div class="flex justify-between items-center mb-3">
+    <div class="bg-white rounded-xl shadow-xl p-3.5 sm:p-6 border border-sky-100 mb-4 sm:mb-5">
+      <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3">
         <div>
           <h2 class="text-base font-bold text-sky-700 flex items-center gap-2">
-            <span class="inline-flex items-center justify-center w-6 h-6 bg-sky-600 text-white rounded-full text-xs font-black">2</span>
+            <span class="inline-flex items-center justify-center w-6 h-6 bg-sky-600 text-white rounded-full text-xs font-black shrink-0">2</span>
             Modal Fikri Group
           </h2>
-          <p class="text-xs text-gray-400 mt-0.5">Sumber modal: Fikri 1, Fikri 2, Fikri 3</p>
+          <p class="text-[11px] sm:text-xs text-gray-400 mt-0.5">Sumber modal: Fikri 1, Fikri 2, Fikri 3</p>
         </div>
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2.5 py-1 rounded-lg">
+        <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto pt-1 sm:pt-0">
+          <span class="text-xs font-bold text-sky-700 bg-sky-50 border border-sky-200 px-2.5 py-1 rounded-lg shrink-0">
             Total: <span id="totalCard2">Rp 0</span>
           </span>
           <button onclick="tambahBaris('fikri')"
-            class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-3 py-2 rounded-lg cursor-pointer flex items-center gap-1.5 transition">
+            class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-3 py-1.5 rounded-lg cursor-pointer flex items-center gap-1.5 transition shrink-0 shadow-xs">
             <i class="fa-solid fa-plus text-xs"></i> Tambah
           </button>
         </div>
       </div>
       <div class="overflow-x-auto border border-gray-200 rounded-lg">
-        <table class="w-full min-w-[500px] text-left border-collapse">
+        <table class="w-full text-left border-collapse">
           <thead>
-            <tr class="bg-sky-50 text-sky-700 text-xs uppercase font-bold border-b border-sky-100">
-              <th class="p-3 w-10 text-center hidden sm:table-cell">No</th>
-              <th class="p-3">Keterangan</th>
-              <th class="p-3 w-36 sm:w-44 text-left">Jumlah (Rp)</th>
-              <th class="p-3 w-28 text-center">Status</th>
-              <th class="p-3 w-14 text-center">Aksi</th>
+            <tr class="bg-sky-50 text-sky-700 text-[10px] sm:text-xs uppercase font-bold border-b border-sky-100">
+              <th class="p-2 sm:p-3 w-8 sm:w-10 text-center hidden sm:table-cell">No</th>
+              <th class="p-2 sm:p-3">Keterangan</th>
+              <th class="p-2 sm:p-3 w-28 sm:w-44 text-left">Jumlah (Rp)</th>
+              <th class="p-2 sm:p-3 w-20 sm:w-28 text-center">Status</th>
+              <th class="p-2 sm:p-3 w-9 sm:w-14 text-center">Aksi</th>
             </tr>
           </thead>
           <tbody id="tbodyCard2" class="divide-y divide-gray-100 bg-white"></tbody>
         </table>
       </div>
-      <div class="mt-4 flex justify-end pt-3 border-t border-gray-100">
+      <div class="mt-3.5 sm:mt-4 flex justify-end pt-3 border-t border-gray-100">
         <button onclick="simpanGroup('fikri')"
-          class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow transition cursor-pointer flex items-center gap-2">
+          class="w-full sm:w-auto bg-sky-600 hover:bg-sky-700 text-white font-bold text-sm px-5 py-2.5 rounded-xl shadow transition cursor-pointer flex items-center justify-center gap-2">
           <i class="fa-solid fa-floppy-disk"></i> Simpan Card 2
         </button>
       </div>
     </div>
 
     <!-- ===================== CARD 3: SISA TOTAL DANA ===================== -->
-    <div class="bg-white rounded-xl shadow-xl p-5 sm:p-6 border border-emerald-200">
+    <div class="bg-white rounded-xl shadow-xl p-3.5 sm:p-6 border border-emerald-200">
       <h2 class="text-base font-bold text-emerald-700 flex items-center gap-2 mb-4">
         <span class="inline-flex items-center justify-center w-6 h-6 bg-emerald-600 text-white rounded-full text-xs font-black">3</span>
         Ringkasan Sisa Total Dana
