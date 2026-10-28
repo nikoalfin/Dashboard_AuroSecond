@@ -3,6 +3,7 @@ let chartInstance = null;
 
 // Mulai inisialisasi halaman
 document.addEventListener('DOMContentLoaded', () => {
+  initOmsetView();
   isiDropdownBulan('filterBulan', 'Semua Bulan (Breakdown Bulanan)');
   isiDropdownTahun('filterTahun', [], 'Semua Tahun');
 
@@ -137,43 +138,163 @@ function prosesDataKeuangan() {
   updateGrafikKeuangan(motorTerjual, filterBulan, filterTahun);
 }
 
-// Render data motor ke elemen tabel
+// Manajemen View Tampilan: Kartu (Mobile) vs Tabel
+let currentOmsetView = 'card';
+
+function setOmsetView(mode) {
+  currentOmsetView = mode;
+  try {
+    localStorage.setItem('omset_view_pref', mode);
+  } catch (e) {}
+
+  const cardContainer = document.getElementById('omsetCardView');
+  const tableContainer = document.getElementById('omsetTableView');
+  const btnCard = document.getElementById('btnViewCard');
+  const btnTable = document.getElementById('btnViewTable');
+
+  if (!cardContainer || !tableContainer) return;
+
+  if (mode === 'card') {
+    cardContainer.classList.remove('hidden');
+    tableContainer.classList.add('hidden');
+
+    if (btnCard) {
+      btnCard.className = 'px-2.5 py-1 rounded-md transition flex items-center gap-1.5 cursor-pointer bg-white text-blue-600 shadow-xs font-bold';
+    }
+    if (btnTable) {
+      btnTable.className = 'px-2.5 py-1 rounded-md transition flex items-center gap-1.5 cursor-pointer text-gray-600 hover:text-gray-900 font-medium';
+    }
+  } else {
+    tableContainer.classList.remove('hidden');
+    cardContainer.classList.add('hidden');
+
+    if (btnTable) {
+      btnTable.className = 'px-2.5 py-1 rounded-md transition flex items-center gap-1.5 cursor-pointer bg-white text-blue-600 shadow-xs font-bold';
+    }
+    if (btnCard) {
+      btnCard.className = 'px-2.5 py-1 rounded-md transition flex items-center gap-1.5 cursor-pointer text-gray-600 hover:text-gray-900 font-medium';
+    }
+  }
+}
+
+function initOmsetView() {
+  let saved = null;
+  try {
+    saved = localStorage.getItem('omset_view_pref');
+  } catch (e) {}
+
+  if (saved === 'card' || saved === 'table') {
+    setOmsetView(saved);
+  } else {
+    // Default responsif: mobile (< 768px) pakai kartu, desktop pakai tabel
+    setOmsetView(window.innerWidth < 768 ? 'card' : 'table');
+  }
+}
+
+// Render data motor ke elemen tabel dan kartu
 function renderTabelKeuangan(motorList) {
   const tbody = document.getElementById('bodyTabelKeuangan');
-  if (!tbody) return;
+  const cardView = document.getElementById('omsetCardView');
+  if (!tbody && !cardView) return;
 
   if (motorList.length === 0) {
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="6" class="text-center py-10 text-gray-400 font-medium bg-white">
-          <i class="fa-solid fa-folder-open text-3xl mb-2 block text-gray-200"></i>
-          Tidak ada rincian data penjualan untuk filter ini.
-        </td>
-      </tr>
+    const emptyNotice = `
+      <div class="text-center py-10 text-gray-400 font-medium bg-white rounded-xl">
+        <i class="fa-solid fa-folder-open text-3xl mb-2 block text-gray-200"></i>
+        Tidak ada rincian data penjualan untuk filter ini.
+      </div>
     `;
+    if (tbody) {
+      tbody.innerHTML = `
+        <tr>
+          <td colspan="6" class="text-center py-10 text-gray-400 font-medium bg-white">
+            <i class="fa-solid fa-folder-open text-3xl mb-2 block text-gray-200"></i>
+            Tidak ada rincian data penjualan untuk filter ini.
+          </td>
+        </tr>
+      `;
+    }
+    if (cardView) cardView.innerHTML = emptyNotice;
     return;
   }
 
-  let html = '';
+  let tableHtml = '';
+  let cardHtml = '';
+
   motorList.forEach((motor) => {
     const penjualan = Number(motor.penjualan) || 0;
     const pengeluaran = Number(motor.totalPengeluaran) || 0;
     const untungBersih = penjualan - pengeluaran;
     const bagiHasil = untungBersih / 2;
+    const untungIsPositive = untungBersih >= 0;
+    const untungBadgeClass = untungIsPositive
+      ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+      : 'bg-rose-50 text-rose-700 border-rose-200';
+    const untungTextClass = untungIsPositive ? 'text-emerald-600' : 'text-rose-600';
+    const untungSign = untungIsPositive ? '+' : '';
+    const detailUrl = `../detail-page/detail.html?id=${encodeURIComponent(motor.id)}`;
 
-    html += `
-      <tr class="hover:bg-gray-50/50 bg-white transition duration-150 text-gray-700">
-        <td class="py-3.5 px-5 font-bold text-gray-800 capitalize">${motor.nama}</td>
-        <td class="py-3.5 px-5 text-gray-500">${motor.tglLaku || motor.tglBeli || '-'}</td>
-        <td class="py-3.5 px-5 text-right font-semibold text-blue-600">${formatRupiah(penjualan)}</td>
-        <td class="py-3.5 px-5 text-right text-gray-500">${formatRupiah(pengeluaran)}</td>
-        <td class="py-3.5 px-5 text-right font-bold text-emerald-600">${formatRupiah(untungBersih)}</td>
-        <td class="py-3.5 px-5 text-right font-semibold text-indigo-600">${formatRupiah(bagiHasil)}</td>
+    // 1. Baris Tabel (Mode Desktop / Tabel)
+    tableHtml += `
+      <tr class="hover:bg-blue-50/30 bg-white transition duration-150 text-gray-700">
+        <td class="py-3 px-4 sm:px-5 font-bold text-gray-800 capitalize">
+          <a href="${detailUrl}" class="hover:text-blue-600 transition inline-flex items-center gap-1.5 group">
+            <span>${motor.nama}</span>
+            <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-gray-300 group-hover:text-blue-500 transition"></i>
+          </a>
+        </td>
+        <td class="py-3 px-4 sm:px-5 text-gray-500 whitespace-nowrap">${motor.tglLaku || motor.tglBeli || '-'}</td>
+        <td class="py-3 px-4 sm:px-5 text-right font-semibold text-blue-600 whitespace-nowrap">${formatRupiah(penjualan)}</td>
+        <td class="py-3 px-4 sm:px-5 text-right text-gray-500 whitespace-nowrap">${formatRupiah(pengeluaran)}</td>
+        <td class="py-3 px-4 sm:px-5 text-right font-bold ${untungTextClass} whitespace-nowrap">${untungSign}${formatRupiah(untungBersih)}</td>
+        <td class="py-3 px-4 sm:px-5 text-right font-semibold text-indigo-600 whitespace-nowrap">${formatRupiah(bagiHasil)}</td>
       </tr>
+    `;
+
+    // 2. Kartu (Mode Mobile / iPhone XS / Layar Kecil)
+    cardHtml += `
+      <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-gray-200/90 shadow-xs hover:border-blue-300 transition-all">
+        <div class="flex justify-between items-start gap-2 pb-2.5 border-b border-gray-100">
+          <div class="min-w-0 flex-1">
+            <a href="${detailUrl}" class="font-bold text-gray-800 text-sm capitalize hover:text-blue-600 transition inline-flex items-center gap-1.5 group">
+              <span class="break-words">${motor.nama}</span>
+              <i class="fa-solid fa-arrow-up-right-from-square text-[10px] text-gray-300 group-hover:text-blue-500 transition shrink-0"></i>
+            </a>
+            <p class="text-[11px] text-gray-400 flex items-center gap-1.5 mt-0.5">
+              <i class="fa-regular fa-calendar text-[10px]"></i>
+              <span>${motor.tglLaku || motor.tglBeli || '-'}</span>
+            </p>
+          </div>
+          <div class="text-right shrink-0">
+            <span class="text-[9px] text-gray-400 uppercase font-bold tracking-wider block mb-0.5">Untung Bersih</span>
+            <span class="inline-block text-xs font-extrabold px-2 py-0.5 rounded-lg border ${untungBadgeClass} whitespace-nowrap">
+              ${untungSign}${formatRupiah(untungBersih)}
+            </span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2 pt-2.5 text-xs">
+          <div class="bg-blue-50/50 p-2 sm:p-2.5 rounded-lg border border-blue-100/70">
+            <span class="text-[10px] text-blue-700 font-bold uppercase tracking-wider block mb-0.5">Harga Jual (Omset)</span>
+            <span class="font-extrabold text-blue-600 text-xs sm:text-sm whitespace-nowrap">${formatRupiah(penjualan)}</span>
+          </div>
+          <div class="bg-gray-50 p-2 sm:p-2.5 rounded-lg border border-gray-200/70">
+            <span class="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-0.5">Biaya Ops & Modal</span>
+            <span class="font-bold text-gray-700 text-xs sm:text-sm whitespace-nowrap">${formatRupiah(pengeluaran)}</span>
+          </div>
+          <div class="col-span-2 bg-indigo-50/50 px-3 py-2 rounded-lg border border-indigo-100/70 flex justify-between items-center text-xs">
+            <span class="text-indigo-900 font-semibold text-[11px] sm:text-xs flex items-center gap-1.5">
+              <i class="fa-solid fa-user-group text-indigo-500 text-[11px]"></i> Bagi Hasil Niko & Fikri (50%)
+            </span>
+            <span class="font-extrabold text-indigo-700 text-xs sm:text-sm whitespace-nowrap">${formatRupiah(bagiHasil)}</span>
+          </div>
+        </div>
+      </div>
     `;
   });
 
-  tbody.innerHTML = html;
+  if (tbody) tbody.innerHTML = tableHtml;
+  if (cardView) cardView.innerHTML = cardHtml;
 }
 
 // Gambar Grafik dengan Chart.js

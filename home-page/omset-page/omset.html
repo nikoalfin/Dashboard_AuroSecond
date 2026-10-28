@@ -36,28 +36,28 @@
     max-width="max-w-6xl">
   </app-header>
 
-  <div class="max-w-6xl mx-auto px-4 md:px-8 pb-8">
+  <div class="max-w-6xl mx-auto px-3.5 sm:px-6 md:px-8 pb-8">
     <!-- Title Section -->
-    <div class="border-b border-gray-200 pb-4 mb-6">
-      <h1 class="text-3xl font-extrabold text-blue-600 flex items-center gap-2">
+    <div class="border-b border-gray-200 pb-4 mb-5 sm:mb-6">
+      <h1 class="text-2xl sm:text-3xl font-extrabold text-blue-600 flex items-center gap-2">
         <i class="fa-solid fa-chart-line"></i> Analisis Omset & Profit
       </h1>
-      <p class="text-sm text-gray-500">Laporan untung bersih per bulan bagi hasil Niko & Fikri secara realtime</p>
+      <p class="text-xs sm:text-sm text-gray-500 mt-1">Laporan untung bersih per bulan bagi hasil Niko & Fikri secara realtime</p>
     </div>
 
     <!-- Filter Section -->
-    <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm mb-6">
-      <h2 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+    <div class="bg-white border border-gray-200 rounded-xl p-3.5 sm:p-5 shadow-sm mb-5 sm:mb-6">
+      <h2 class="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 flex items-center gap-2">
         <i class="fa-solid fa-filter text-blue-500"></i> Filter Laporan
       </h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
         <div>
-          <label for="filterBulan" class="block text-xs font-bold text-gray-500 uppercase mb-1">Bulan</label>
+          <label for="filterBulan" class="block text-[11px] sm:text-xs font-bold text-gray-500 uppercase mb-1">Bulan</label>
           <select id="filterBulan" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" onchange="prosesDataKeuangan()">
           </select>
         </div>
         <div>
-          <label for="filterTahun" class="block text-xs font-bold text-gray-500 uppercase mb-1">Tahun</label>
+          <label for="filterTahun" class="block text-[11px] sm:text-xs font-bold text-gray-500 uppercase mb-1">Tahun</label>
           <select id="filterTahun" class="w-full bg-white border border-gray-300 rounded-lg p-2.5 text-sm focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500" onchange="prosesDataKeuangan()">
           </select>
         </div>
@@ -65,68 +65,91 @@
     </div>
 
     <!-- Stats Cards Grid -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-5 sm:mb-6">
       <!-- Card Omset -->
-      <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-5 shadow-md flex flex-col justify-between relative overflow-hidden">
+      <div class="bg-gradient-to-br from-blue-500 to-blue-600 text-white rounded-xl p-4 sm:p-5 shadow-md flex flex-col justify-between relative overflow-hidden">
         <div class="absolute -right-4 -bottom-4 opacity-10 text-7xl"><i class="fa-solid fa-coins"></i></div>
-        <span class="text-xs font-bold uppercase tracking-wider text-blue-100">Total Omset</span>
-        <h3 id="txtTotalOmset" class="text-2xl font-extrabold mt-2">Rp 0</h3>
+        <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-blue-100">Total Omset</span>
+        <h3 id="txtTotalOmset" class="text-xl sm:text-2xl font-extrabold mt-1 sm:mt-2">Rp 0</h3>
         <span class="text-[10px] text-blue-200 mt-1">Akumulasi Harga Jual</span>
       </div>
 
       <!-- Card Untung Bersih -->
-      <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-xl p-5 shadow-md flex flex-col justify-between relative overflow-hidden">
+      <div class="bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-xl p-4 sm:p-5 shadow-md flex flex-col justify-between relative overflow-hidden">
         <div class="absolute -right-4 -bottom-4 opacity-10 text-7xl"><i class="fa-solid fa-money-bill-trend-up"></i></div>
-        <span class="text-xs font-bold uppercase tracking-wider text-emerald-100">Total Untung Bersih</span>
-        <h3 id="txtTotalUntung" class="text-2xl font-extrabold mt-2">Rp 0</h3>
+        <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Total Untung Bersih</span>
+        <h3 id="txtTotalUntung" class="text-xl sm:text-2xl font-extrabold mt-1 sm:mt-2">Rp 0</h3>
         <span class="text-[10px] text-emerald-200 mt-1">Omset - Modal & Operasional</span>
       </div>
 
       <!-- Card Untung Niko -->
-      <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
+      <div class="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
         <div class="absolute -right-4 -bottom-4 opacity-5 text-7xl text-indigo-600"><i class="fa-solid fa-user-tie"></i></div>
-        <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Bagi Hasil Niko (50%)</span>
-        <h3 id="txtUntungNiko" class="text-2xl font-extrabold text-indigo-600 mt-2">Rp 0</h3>
+        <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-gray-400">Bagi Hasil Niko (50%)</span>
+        <h3 id="txtUntungNiko" class="text-xl sm:text-2xl font-extrabold text-indigo-600 mt-1 sm:mt-2">Rp 0</h3>
         <span class="text-[10px] text-gray-400 mt-1">Bersih untuk Niko</span>
       </div>
 
       <!-- Card Untung Fikri -->
-      <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
+      <div class="bg-white border border-gray-200 rounded-xl p-4 sm:p-5 shadow-sm flex flex-col justify-between relative overflow-hidden">
         <div class="absolute -right-4 -bottom-4 opacity-5 text-7xl text-teal-600"><i class="fa-solid fa-user-tie"></i></div>
-        <span class="text-xs font-bold uppercase tracking-wider text-gray-400">Bagi Hasil Fikri (50%)</span>
-        <h3 id="txtUntungFikri" class="text-2xl font-extrabold text-teal-600 mt-2">Rp 0</h3>
+        <span class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-gray-400">Bagi Hasil Fikri (50%)</span>
+        <h3 id="txtUntungFikri" class="text-xl sm:text-2xl font-extrabold text-teal-600 mt-1 sm:mt-2">Rp 0</h3>
         <span class="text-[10px] text-gray-400 mt-1">Bersih untuk Fikri</span>
       </div>
     </div>
 
     <!-- Chart Section -->
-    <div class="bg-white border border-gray-200 rounded-xl p-5 shadow-sm mb-6">
-      <h2 class="text-sm font-bold text-gray-700 uppercase tracking-wider mb-4 flex items-center gap-2">
+    <div class="bg-white border border-gray-200 rounded-xl p-3.5 sm:p-5 shadow-sm mb-5 sm:mb-6">
+      <h2 class="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wider mb-3 sm:mb-4 flex items-center gap-2">
         <i class="fa-solid fa-chart-simple text-blue-500"></i> Visualisasi Grafik Keuntungan
       </h2>
-      <div class="w-full relative h-[320px] md:h-[400px]">
+      <div class="w-full relative h-[250px] sm:h-[320px] md:h-[400px]">
         <canvas id="chartKeuangan"></canvas>
       </div>
     </div>
 
-    <!-- Table Section -->
-    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-      <div class="p-5 border-b border-gray-200 flex justify-between items-center bg-gray-50/50">
-        <h2 class="text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
-          <i class="fa-solid fa-list-check text-blue-500"></i> Rincian Penjualan Terfilter
-        </h2>
-        <span id="txtJumlahData" class="text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded-full">0 Unit</span>
+    <!-- Table / Card Section -->
+    <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-6">
+      <div class="p-3.5 sm:p-5 border-b border-gray-200 flex flex-wrap justify-between items-center bg-gray-50/50 gap-2.5">
+        <div class="flex items-center gap-2">
+          <h2 class="text-xs sm:text-sm font-bold text-gray-700 uppercase tracking-wider flex items-center gap-2">
+            <i class="fa-solid fa-list-check text-blue-500"></i> Rincian Penjualan Terfilter
+          </h2>
+          <span id="txtJumlahData" class="text-xs font-bold bg-blue-50 text-blue-600 border border-blue-200 px-2 py-0.5 rounded-full">0 Unit</span>
+        </div>
+
+        <!-- Toggle Tampilan: Kartu (Mobile) vs Tabel -->
+        <div class="inline-flex p-0.5 bg-gray-200/80 rounded-lg text-xs font-medium border border-gray-200">
+          <button id="btnViewCard" type="button" onclick="setOmsetView('card')"
+            class="px-2.5 py-1 rounded-md transition flex items-center gap-1.5 cursor-pointer bg-white text-blue-600 shadow-xs font-bold">
+            <i class="fa-solid fa-grip-vertical text-[11px]"></i>
+            <span>Kartu</span>
+          </button>
+          <button id="btnViewTable" type="button" onclick="setOmsetView('table')"
+            class="px-2.5 py-1 rounded-md transition flex items-center gap-1.5 cursor-pointer text-gray-600 hover:text-gray-900 font-medium">
+            <i class="fa-solid fa-table-list text-[11px]"></i>
+            <span>Tabel</span>
+          </button>
+        </div>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse text-sm">
+
+      <!-- Tampilan Kartu (Responsif Mobile) -->
+      <div id="omsetCardView" class="p-3 sm:p-4 space-y-3 bg-gray-50/40">
+        <!-- Akan diisi secara dinamis oleh JavaScript -->
+      </div>
+
+      <!-- Tampilan Tabel (Desktop & Horizontal Scroll Terstruktur) -->
+      <div id="omsetTableView" class="overflow-x-auto hidden">
+        <table class="w-full min-w-[700px] text-left border-collapse text-xs sm:text-sm">
           <thead>
-            <tr class="bg-gray-50 text-gray-500 font-semibold border-b border-gray-200 text-xs uppercase tracking-wider">
-              <th class="py-3.5 px-5">Nama Unit</th>
-              <th class="py-3.5 px-5">Tgl Jual</th>
-              <th class="py-3.5 px-5 text-right">Harga Jual (Omset)</th>
-              <th class="py-3.5 px-5 text-right">Biaya Ops & Modal</th>
-              <th class="py-3.5 px-5 text-right">Untung Bersih</th>
-              <th class="py-3.5 px-5 text-right">Bagi Hasil (Masing-masing)</th>
+            <tr class="bg-gray-50 text-gray-500 font-semibold border-b border-gray-200 text-[11px] sm:text-xs uppercase tracking-wider">
+              <th class="py-3 px-4 sm:px-5">Nama Unit</th>
+              <th class="py-3 px-4 sm:px-5 whitespace-nowrap">Tgl Jual</th>
+              <th class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">Harga Jual (Omset)</th>
+              <th class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">Biaya Ops & Modal</th>
+              <th class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">Untung Bersih</th>
+              <th class="py-3 px-4 sm:px-5 text-right whitespace-nowrap">Bagi Hasil (50%)</th>
             </tr>
           </thead>
           <tbody id="bodyTabelKeuangan" class="divide-y divide-gray-150">
