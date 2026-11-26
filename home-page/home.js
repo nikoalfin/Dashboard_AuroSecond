@@ -213,7 +213,7 @@ function renderBeranda() {
                 </div>
             </div>
             <div class="border-t border-gray-100 pt-3 flex justify-between items-center text-xs text-gray-600 font-medium">
-                <span>Total Ops:</span><span class="font-bold text-gray-800">Rp ${(motor.totalPengeluaran || 0).toLocaleString('id-ID')}</span>
+                <span>Total Ops:</span><span class="font-bold text-gray-800">${formatRupiah(motor.totalPengeluaran || 0)}</span>
             </div>
         `;
     grid.appendChild(card);
@@ -273,45 +273,51 @@ function tutupModalTambah() {
 }
 
 async function prosesTambahMotor() {
-  const nama = document.getElementById('modalInputNama').value;
-  const tglBeli = document.getElementById('modalInputTglBeli').value;
+  const nama = document.getElementById('modalInputNama')?.value?.trim();
+  const tglBeli = document.getElementById('modalInputTglBeli')?.value;
   if (!nama) {
     alert('Nama motor wajib diisi!');
     return;
   }
 
-  const newId = listStokMotor.length > 0 ? Math.max(...listStokMotor.map((o) => Number(o.id) || 0)) + 1 : 1;
-  const newObj = {
-    id: newId,
-    nama: nama,
-    status: 'Ready',
-    tglBeli: tglBeli || new Date().toISOString().split('T')[0],
-    tglLaku: '',
-    modalNiko: 0,
-    modalFikri: 0,
-    penjualan: 0,
-    totalPengeluaran: 0,
-    pengeluaran: [],
-    gambar: '',
-  };
-
   const btnSimpan = document.querySelector('#modalTambah button.bg-blue-600');
-  const oldText = btnSimpan.innerText;
-  btnSimpan.innerText = 'Menyimpan...';
-  btnSimpan.disabled = true;
+  const oldText = btnSimpan ? btnSimpan.innerText : 'Simpan Unit';
+  if (btnSimpan) {
+    btnSimpan.innerText = 'Menyimpan...';
+    btnSimpan.disabled = true;
+  }
 
   try {
     const client = getSupabase();
     if (!client) throw new Error('Supabase client belum diinisialisasi');
 
-    const dbPayload = formatMotorToDB(newObj);
+    // Ambil ID tertinggi aktual langsung dari seluruh database secara realtime (ringan & cepat)
+    const { data: maxIdData, error: maxIdErr } = await client
+      .from(TABLE_MOTOR)
+      .select('id')
+      .order('id', { ascending: false })
+      .limit(1);
+
+    if (maxIdErr) throw maxIdErr;
+
+    const newId = Number(maxIdData?.[0]?.id || 0) + 1;
+
+    const dbPayload = formatMotorToDB({
+      id: newId,
+      nama,
+      status: 'Ready',
+      tglBeli: tglBeli || new Date().toISOString().split('T')[0],
+    });
+
     const { error } = await client.from(TABLE_MOTOR).insert([dbPayload]);
     if (error) throw error;
 
     window.location.href = `detail-page/detail.html?id=${newId}`;
   } catch (err) {
     alert('Gagal menambahkan motor ke database: ' + err.message);
-    btnSimpan.innerText = oldText;
-    btnSimpan.disabled = false;
+    if (btnSimpan) {
+      btnSimpan.innerText = oldText;
+      btnSimpan.disabled = false;
+    }
   }
 }
